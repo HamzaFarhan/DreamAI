@@ -75,7 +75,9 @@ def merge_same_role_messages(messages: list[MessageType]) -> list[MessageType]:
         if last_message is None:
             last_message = deepcopy(message)
         elif last_message["role"] == message["role"]:
-            last_message["content"] += "\n\n--- Next Message ---\n\n" + message["content"]
+            last_message["content"] += (
+                "\n\n--- Next Message ---\n\n" + message["content"]
+            )
         else:
             new_messages.append(last_message)
             last_message = deepcopy(message)
@@ -382,7 +384,9 @@ class Dialog(BaseModel):
     ):
         if new_version is None:
             num_decimal_places = str(self.version)[::-1].find(".")
-            new_version = round(self.version + 10**-num_decimal_places, num_decimal_places)
+            new_version = round(
+                self.version + 10**-num_decimal_places, num_decimal_places
+            )
         self.version = cast(float, new_version)
         if save:
             self.save(name=name)

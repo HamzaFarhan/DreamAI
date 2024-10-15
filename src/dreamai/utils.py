@@ -64,7 +64,9 @@ def chunk_text(
         return [{"text": text, "start": 0, "end": len(text)}]
     chunk_overlap = min(chunk_overlap, chunk_size // 2)
     separators = separators or [r"#{1,6}\s+.+", r"\*\*.*?\*\*", r"---", r"\n\n", r"\n"]
-    pattern = f'({"|".join(separators)})' if keep_separator else f'(?:{"|".join(separators)})'
+    pattern = (
+        f'({"|".join(separators)})' if keep_separator else f'(?:{"|".join(separators)})'
+    )
     chunks = [chunk.strip() for chunk in re.split(pattern, text) if chunk.strip()]
     result = []
     current_chunk = ""
@@ -269,7 +271,9 @@ def group_broken_paragraphs(
 
 def replace_mime_encodings(text: str, encoding: str = "utf-8") -> str:
     formatted_encoding = format_encoding_str(encoding)
-    return quopri.decodestring(text.encode(formatted_encoding)).decode(formatted_encoding)
+    return quopri.decodestring(text.encode(formatted_encoding)).decode(
+        formatted_encoding
+    )
 
 
 def replace_unicode_quotes(text: str) -> str:

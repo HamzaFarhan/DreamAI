@@ -57,9 +57,7 @@ class DAICrawler:
             )
         data["links"] = []
         for link in soup.find_all("a", href=True):
-            data["links"].append(
-                {"text": link.get_text(strip=True), "href": link["href"]}
-            )
+            data["links"].append({"text": link.get_text(strip=True), "href": link["href"]})
         data["images"] = []
         for img in soup.find_all("img", src=True):
             data["images"].append({"src": img["src"], "alt": img.get("alt", "")})
@@ -75,9 +73,7 @@ class DAICrawler:
             return
 
         if not url.startswith(self.url_prefix):
-            logger.info(
-                f"URL {url} does not match the prefix {self.url_prefix}. Skipping."
-            )
+            logger.info(f"URL {url} does not match the prefix {self.url_prefix}. Skipping.")
             return
 
         if url in self.visited:
@@ -101,9 +97,7 @@ class DAICrawler:
             except Exception:
                 current_data = []
             current_data.extend(md_data)
-            with open(self.file_path, "w") as f:
-                json.dump(current_data, f, indent=2)
-
+            Path(self.file_path).write_text(json.dumps(current_data, indent=2))
             links = await page.query_selector_all("a")
             for link in links:
                 try:
