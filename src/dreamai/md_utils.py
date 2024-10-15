@@ -1,5 +1,4 @@
 import json
-import os
 import re
 import tempfile
 from pathlib import Path
@@ -83,10 +82,7 @@ class MarkdownData(BaseModel):
 
 
 def is_url(text: str) -> bool:
-    return (
-        re.match(r"^https?:\/\/[\da-z\.-]+\.[a-z]{2,}([\/\w \.-]*)*\/?$", text)
-        is not None
-    )
+    return re.match(r"^https?:\/\/[\da-z\.-]+\.[a-z]{2,}([\/\w \.-]*)*\/?$", text) is not None
 
 
 def extract_text_from_image(image_path: str, min_len: int = 2) -> str:
@@ -98,7 +94,7 @@ def extract_text_from_image(image_path: str, min_len: int = 2) -> str:
 
 def replace_image_tags(md: str, image_folder: str) -> str:
     def replace_tag(match):
-        full_image_path = os.path.join(image_folder, match.group(1))
+        full_image_path = str(Path(image_folder) / match.group(1))
         return extract_text_from_image(full_image_path)
 
     return re.sub(r"!\[\]\((.*?)\)", replace_tag, md)
@@ -124,9 +120,7 @@ def remove_sponsor_related_words(text: str) -> str:
 
 
 def clean_web_content(content: str, min_length: int = 3) -> str:
-    cleaned_content = remove_sponsor_related_words(
-        text=remove_links_from_md(md=content)
-    )
+    cleaned_content = remove_sponsor_related_words(text=remove_links_from_md(md=content))
     return "\n".join(
         [line for line in cleaned_content.split("\n") if len(line.strip()) > min_length]
     )
@@ -162,9 +156,7 @@ def url_body_to_md(body: str, extractor: str = "h2t") -> str:
     def _f(m):
         return f"```\n{dedent(m.group(1))}\n```"
 
-    return re.sub(
-        r"\[code]\s*\n(.*?)\n\[/code]", _f, res or "", flags=re.DOTALL
-    ).strip()
+    return re.sub(r"\[code]\s*\n(.*?)\n\[/code]", _f, res or "", flags=re.DOTALL).strip()
 
 
 def dict_to_md(
@@ -191,7 +183,7 @@ def docx_to_md(docx_path: str | Path) -> str:
     docx_path = str(docx_path)
     html = ""
     try:
-        with open(docx_path, "rb") as docx_file:
+        with open(docx_path, "rb") as docx_file:  # noqa
             html = mammoth.convert_to_html(docx_file).value
     except Exception:
         logger.exception(f"Could not convert {docx_path} to html.")
@@ -219,9 +211,7 @@ def urls_to_md(
         urls = [urls]
     urls_md = []
     for url in urls:
-        md = url_body_to_md(
-            body=get_url_body(url, headers=headers), extractor=extractor
-        )
+        md = url_body_to_md(body=get_url_body(url, headers=headers), extractor=extractor)
         md = clean_web_content(content=md) if clean_content else md
         urls_md.append(
             MarkdownData.model_validate(
@@ -266,9 +256,7 @@ def search_query_to_md(
             MarkdownData.model_validate(
                 {
                     "name": search_result["href"],
-                    "markdown": "\n".join(
-                        [search_result["title"], search_result["body"]]
-                    ),
+                    "markdown": "\n".join([search_result["title"], search_result["body"]]),
                     "chunk_metadata": chunk_metadata or {},
                 },
                 context=to_md_kwargs,
