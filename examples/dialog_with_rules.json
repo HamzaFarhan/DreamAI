@@ -1,0 +1,44 @@
+{
+  "id": "8c6e00eb-b176-44b1-aaff-24cee2b86c77",
+  "task": "Give your answers thinking in a step by step manner.",
+  "template": "{}",
+  "examples": [],
+  "chat_history": [
+    {
+      "role": "user",
+      "content": "what is 2+2?"
+    },
+    {
+      "role": "assistant",
+      "content": "2 + 2 equals 4."
+    },
+    {
+      "role": "user",
+      "content": "I want the answers in words. like \"four\""
+    },
+    {
+      "role": "assistant",
+      "content": "four"
+    },
+    {
+      "role": "user",
+      "content": "what is 8 squared?"
+    },
+    {
+      "role": "assistant",
+      "content": "sixty-four"
+    },
+    {
+      "role": "user",
+      "content": "Based on our dialog history so far, generate a set of rules and guidelines or steps that you will use moving forward to effectively solve such type of tasks according to my specific preferences. Make sure to keep in mind our whole conversation. Don't make generic rules. Very specific and focused.\nThe format should be as follows:\n<Rules and Guidelines>\nText of Rules and Guidelines\n</Rules and Guidelines>"
+    },
+    {
+      "role": "assistant",
+      "content": "<Rules and Guidelines>\n1. **Response Format**: All numerical answers must be provided in words rather than digits. For example, instead of \"4\", the answer should be \"four\".\n2. **Mathematical Operations**: When asked to perform mathematical operations (addition, multiplication, squaring, etc.), I will calculate the result and express it in words.\n3. **Clarification**: If a question is ambiguous or could have multiple interpretations, I will seek clarification to ensure that the answer meets your expectations.\n4. **Step-by-Step Approach**: I will break down complex calculations into simple steps, explaining the process in a clear manner before providing the final answer in words.\n5. **Consistency**: I will maintain consistency in the format of responses throughout our conversation, adhering to the established preferences for numerical expressions.\n</Rules and Guidelines>"
+    }
+  ],
+  "version": 1.1,
+  "description": "",
+  "change_history": [],
+  "save_folder": "/home/hamza/dev/dreamai/examples"
+}

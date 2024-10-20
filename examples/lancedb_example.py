@@ -22,7 +22,7 @@ table = add_to_lance_table(
 res = search_lancedb(
     db=lance_db,
     table_name=table_name,
-    query=["Financial Covenant"],
+    query=["Financial Covnant"],
     reranker=ColbertReranker(model_name="answerdotai/answerai-colbert-small-v1"),
     max_search_results=10,
 )

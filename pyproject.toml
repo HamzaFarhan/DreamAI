@@ -45,6 +45,7 @@ dependencies = [
     "rerankers[transformers]>=0.5.3",
     "bm25s>=0.2.2",
     "pystemmer>=2.2.0.3",
+    "chardet>=5.2.0",
 ]
 
 [build-system]

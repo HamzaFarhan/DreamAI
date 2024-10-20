@@ -75,9 +75,7 @@ def merge_same_role_messages(messages: list[MessageType]) -> list[MessageType]:
         if last_message is None:
             last_message = deepcopy(message)
         elif last_message["role"] == message["role"]:
-            last_message["content"] += (
-                "\n\n--- Next Message ---\n\n" + message["content"]
-            )
+            last_message["content"] += "\n\n--- Next Message ---\n\n" + message["content"]
         else:
             new_messages.append(last_message)
             last_message = deepcopy(message)
@@ -202,11 +200,8 @@ class Dialog(BaseModel):
         return cls(chat_history=messages)
 
     def save(self, name: str = "", include_chat_history: bool = True) -> str:
-        Path(self.save_folder).mkdir(parents=True)
-        name = name or self.name
-        if not name.endswith(".json"):
-            name += ".json"
-        path = Path(self.save_folder) / name
+        Path(self.save_folder).mkdir(parents=True, exist_ok=True)
+        path = (Path(self.save_folder) / name or self.name).with_suffix(".json")
         exclude = set() if include_chat_history else {"chat_history"}
         if self.original_task == self.task:
             exclude.add("original_task")
@@ -216,13 +211,11 @@ class Dialog(BaseModel):
         return str(path)
 
     @classmethod
-    def load(cls, path: str, include_chat_history: bool = True) -> Self:
-        assert (
-            Path(path).suffix == ".json"
-        ), "Path must be a .json file made by calling .save()"
+    def load(cls, path: str | Path, include_chat_history: bool = True) -> Self:
+        path = Path(path)
+        assert path.suffix == ".json", "Path must be a .json file made by calling .save()"
         return cls.from_dump(
-            json.loads(Path(path).read_text()),
-            include_chat_history=include_chat_history,
+            json.loads(path.read_text()), include_chat_history=include_chat_history
         )
 
     def add_examples(
@@ -270,18 +263,17 @@ class Dialog(BaseModel):
     def get_shorter_messages(
         self, messages: list[MessageType], chat_history_limit: int = CHAT_HISTORY_LIMIT
     ) -> list[MessageType]:
-        if len(messages) > chat_history_limit:
-            shorter_messages = messages[-chat_history_limit:]
-            if shorter_messages[0]["role"] != "user":
-                if len(shorter_messages) > 1:
-                    shorter_messages = shorter_messages[1:]
-                elif len(messages) - len(shorter_messages) > 1:
-                    chat_history_limit += 1
-                    shorter_messages = messages[-chat_history_limit:]
-                else:
-                    shorter_messages = []
-        else:
-            shorter_messages = messages
+        if len(messages) <= chat_history_limit:
+            return messages
+        shorter_messages = messages[-chat_history_limit:]
+        if shorter_messages[0]["role"] != "user":
+            if len(shorter_messages) > 1:
+                shorter_messages = shorter_messages[1:]
+            elif len(messages) - len(shorter_messages) > 1:
+                chat_history_limit += 1
+                shorter_messages = messages[-chat_history_limit:]
+            else:
+                shorter_messages = []
         return shorter_messages
 
     def gpt_kwargs(
@@ -384,9 +376,7 @@ class Dialog(BaseModel):
     ):
         if new_version is None:
             num_decimal_places = str(self.version)[::-1].find(".")
-            new_version = round(
-                self.version + 10**-num_decimal_places, num_decimal_places
-            )
+            new_version = round(self.version + 10**-num_decimal_places, num_decimal_places)
         self.version = cast(float, new_version)
         if save:
             self.save(name=name)
