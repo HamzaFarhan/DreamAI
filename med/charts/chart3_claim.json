@@ -1,0 +1,57 @@
+{
+  "carrier_code": "MC051",
+  "state": "CA",
+  "practice": "SFGH123",
+  "provider": "1234567890",
+  "default_place_of_service": "23",
+  "date_of_service": "2023-11-10",
+  "patient": {
+    "medical_record_number": "ER112233",
+    "birth": "1998-07-19",
+    "gender": "F"
+  },
+  "procedure_list": [
+    {
+      "procedure_code": "99285",
+      "from_date": "2023-11-10",
+      "to_date": "2023-11-11",
+      "modifier_list": [],
+      "diagnosis_list": [
+        {
+          "diagnosis_code": "K35.9"
+        }
+      ],
+      "place_of_service": null,
+      "units": 1,
+      "unitstime": null
+    },
+    {
+      "procedure_code": "36415",
+      "from_date": "2023-11-10",
+      "to_date": "2023-11-10",
+      "modifier_list": [],
+      "diagnosis_list": [
+        {
+          "diagnosis_code": "K35.9"
+        }
+      ],
+      "place_of_service": null,
+      "units": 1,
+      "unitstime": null
+    },
+    {
+      "procedure_code": "74170",
+      "from_date": "2023-11-10",
+      "to_date": "2023-11-10",
+      "modifier_list": [],
+      "diagnosis_list": [
+        {
+          "diagnosis_code": "K35.9"
+        }
+      ],
+      "place_of_service": null,
+      "units": 1,
+      "unitstime": null
+    }
+  ]
+}

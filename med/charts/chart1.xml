@@ -1,0 +1,32 @@
+<claim>
+  <carrier-code>MC051</carrier-code>
+  <state>CA</state>
+  <practice>ABC Family Clinic</practice>
+  <provider>9876543210</provider>
+  <default-place-of-service>11</default-place-of-service>
+  <date-of-service>2024-07-20</date-of-service>
+  <patient>
+    <medical-record-number>1234567</medical-record-number>
+    <birth>1985-03-15</birth>
+    <gender>F</gender>
+  </patient>
+  <procedure-list>
+    <procedure>
+      <procedure-code>73010</procedure-code>
+      <modifier-list></modifier-list>
+        <diagnosis-list>
+            <diagnosis-code>M17.11</diagnosis-code>
+            <diagnosis-code>I10</diagnosis-code>
+        </diagnosis-list>
+    <units>1</units>
+    </procedure>
+    <procedure>
+      <procedure-code>71020</procedure-code>
+      <modifier-list></modifier-list>
+      <diagnosis-list>
+          <diagnosis-code>M17.11</diagnosis-code>
+      </diagnosis-list>
+      <units>1</units>
+    </procedure>
+  </procedure-list>
+</claim>

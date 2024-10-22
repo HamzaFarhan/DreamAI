@@ -1,0 +1,40 @@
+<claim>
+  <carrier-code>MC72318</carrier-code>
+  <state>FL</state>
+  <practice>Sunshine Senior Care</practice>
+  <provider>1654987320</provider>
+  <default-place-of-service>11</default-place-of-service>
+  <date-of-service>2024-08-28</date-of-service>
+  <patient>
+    <medical-record-number>6432109</medical-record-number>
+    <birth>1948-09-05</birth>
+    <gender>F</gender>
+  </patient>
+  <procedure-list>
+    <procedure>
+        <procedure-code>99213</procedure-code>
+        <modifier-list></modifier-list>
+        <diagnosis-list>
+            <diagnosis-code>E11.9</diagnosis-code>
+        </diagnosis-list>
+      <units>1</units>
+    </procedure>
+    <procedure>
+      <procedure-code>83036</procedure-code>
+      <modifier-list></modifier-list>
+      <diagnosis-list>
+        <diagnosis-code>E11.9</diagnosis-code>
+      </diagnosis-list>
+      <units>1</units>
+    </procedure>
+    <procedure>
+        <procedure-code>80053</procedure-code>
+        <modifier-list></modifier-list>
+        <diagnosis-list>
+            <diagnosis-code>E11.9</diagnosis-code>
+        </diagnosis-list>
+        <units>1</units>
+    </procedure>
+
+  </procedure-list>
+</claim>
