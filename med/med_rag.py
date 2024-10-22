@@ -100,13 +100,14 @@ def create_med_db(
     lance_db: str | LanceDBConnection,
     med_dir: str | Path,
     ems_model="hkunlp/instructor-base",
+    ems_model_device: str = "cuda",
     overwrite: bool = False,
 ):
     logger.info(f"Creating medical database from directory: {med_dir}")
     if isinstance(lance_db, str):
         lance_db = lancedb.connect(lance_db)
         logger.info(f"Connected to LanceDB at: {lance_db}")
-    for file in Path(med_dir).glob("*.json"):
+    for file in Path(med_dir).glob("[icd|cpt]*.json"):
         table_name = file.stem
         logger.info(f"Processing file: {file.name}")
         if table_name in lance_db.table_names():
@@ -128,7 +129,13 @@ def create_med_db(
             for i, code in enumerate(json.loads(file.read_text()))
         ]
         logger.info(f"Adding {len(data)} entries to table: {table_name}")
-        add_to_lance_table(db=lance_db, table_name=table_name, data=data, ems_model=ems_model)
+        add_to_lance_table(
+            db=lance_db,
+            table_name=table_name,
+            data=data,
+            ems_model=ems_model,
+            ems_model_device=ems_model_device,
+        )
     logger.success("Medical database creation completed")
 
 
@@ -193,7 +200,9 @@ def query_med_db(
         logger.success(f"Retrieved codes for: {file.stem}")
 
 
-def extract_claims(charts_dir: str | Path, overwrite: bool = False):
+def extract_claims(
+    charts_dir: str | Path, modifiers_file: str | Path, overwrite: bool = False
+):
     for chart in Path(charts_dir).glob("*.md"):
         output_file = chart.with_name(chart.stem + "_claim.json")
         if not overwrite and output_file.exists():
@@ -210,7 +219,7 @@ def extract_claims(charts_dir: str | Path, overwrite: bool = False):
             task="extraction_task.txt",
             template="<patient_chart>\n{chart}\n</patient_chart>\n\n<available_codes>\n{codes}\n</available_codes>",
         )
-        codes["modifiers"] = json.loads(Path("modifier2024.json").read_text())
+        codes["modifiers"] = json.loads(Path(modifiers_file).read_text())
         creator, kwargs = claim_dialog.creator_with_kwargs(
             model=ModelName.GEMINI_FLASH,
             template_data={"chart": chart.read_text(), "codes": json.dumps(codes)},
@@ -222,8 +231,10 @@ def extract_claims(charts_dir: str | Path, overwrite: bool = False):
 
 if __name__ == "__main__":
     charts_dir = "charts"
+    med_dir = Path("../../med_data")
+    modifiers_file = med_dir / "modifiers2024.json"
     lance_db = lancedb.connect("med_db")
-    create_med_db(lance_db=lance_db, med_dir="/media/hamza/data2/med_codes")
+    create_med_db(lance_db=lance_db, med_dir=med_dir, ems_model_device="mps")
     extract_keywords(charts_dir=charts_dir)
     query_med_db(lance_db=lance_db, charts_dir=charts_dir)
-    extract_claims(charts_dir=charts_dir)
+    extract_claims(charts_dir=charts_dir, modifiers_file=modifiers_file)
