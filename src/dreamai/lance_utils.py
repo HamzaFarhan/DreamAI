@@ -7,6 +7,7 @@ from lancedb.pydantic import LanceModel
 from lancedb.pydantic import Vector as LanceVector
 from lancedb.rerankers import Reranker
 from lancedb.table import Table as LanceTable
+from loguru import logger
 from pydantic import create_model as create_pydantic_model
 
 from dreamai.md_utils import MarkdownChunk
@@ -23,9 +24,7 @@ MAX_SEARCH_RESULTS = rag_settings.max_search_results
 
 def get_lance_ems_model(name: str = EMS_MODEL, device: str = DEVICE):
     if "gemini" in name.lower():
-        return (
-            get_registry().get("gemini-text").create(name="models/text-embedding-004")
-        )
+        return get_registry().get("gemini-text").create(name="models/text-embedding-004")
     return get_registry().get("sentence-transformers").create(name=name, device=device)
 
 
@@ -88,18 +87,22 @@ def search_lancedb(
             return table.search(query=q, query_type="hybrid")
         return table.search(query=q, query_type="hybrid").rerank(reranker=reranker)  # type:ignore
 
-    search_results = [
-        _searcher(q).limit(max_search_results).to_pandas() for q in queries
-    ]
+    search_results = []
+    for q in queries:
+        try:
+            search_results.append(_searcher(q).limit(max_search_results).to_pandas())
+        except Exception:
+            logger.exception(f"Couldn't search for this query: {q}")
     if len(search_results) == 0:
         return []
     results = (
         pd.concat(search_results)
         .drop_duplicates(TEXT_FIELD_NAME)
         .sort_values("_relevance_score", ascending=False)
-        .reset_index(drop=True)
+        .reset_index(drop=True)[:max_search_results]
     )
+
     return [
         {k: v for k, v in d.items() if k != "vector"}
-        for d in results.to_dict(orient="records")
+        for d in results.to_dict(orient="records")  # type:ignore
     ]

@@ -1,5 +1,4 @@
 import inspect
-import os
 import quopri
 import re
 import textwrap
@@ -64,9 +63,7 @@ def chunk_text(
         return [{"text": text, "start": 0, "end": len(text)}]
     chunk_overlap = min(chunk_overlap, chunk_size // 2)
     separators = separators or [r"#{1,6}\s+.+", r"\*\*.*?\*\*", r"---", r"\n\n", r"\n"]
-    pattern = (
-        f'({"|".join(separators)})' if keep_separator else f'(?:{"|".join(separators)})'
-    )
+    pattern = f'({"|".join(separators)})' if keep_separator else f'(?:{"|".join(separators)})'
     chunks = [chunk.strip() for chunk in re.split(pattern, text) if chunk.strip()]
     result = []
     current_chunk = ""
@@ -200,11 +197,7 @@ def insert_xml_tag(text: str, tag: str, start: int, end: int) -> str:
 
 
 def _txt_to_content(content_file: str | Path) -> str:
-    if not os.path.exists(content_file := str(content_file)):
-        return ""
-    with open(content_file, "r") as f:
-        content = f.read()
-    return deindent(content)
+    return deindent(Path(content_file).read_text()) if Path(content_file).exists() else ""
 
 
 def _process_content(content: str | Path | list[str]) -> str:
@@ -221,12 +214,7 @@ def _process_content(content: str | Path | list[str]) -> str:
 
 def format_encoding_str(encoding: str) -> str:
     formatted_encoding = encoding.lower().replace("_", "-")
-    annotated_encodings = [
-        "iso-8859-6-i",
-        "iso-8859-6-e",
-        "iso-8859-8-i",
-        "iso-8859-8-e",
-    ]
+    annotated_encodings = ["iso-8859-6-i", "iso-8859-6-e", "iso-8859-8-i", "iso-8859-8-e"]
     if formatted_encoding in annotated_encodings:
         formatted_encoding = formatted_encoding[:-2]
     return formatted_encoding
@@ -271,9 +259,7 @@ def group_broken_paragraphs(
 
 def replace_mime_encodings(text: str, encoding: str = "utf-8") -> str:
     formatted_encoding = format_encoding_str(encoding)
-    return quopri.decodestring(text.encode(formatted_encoding)).decode(
-        formatted_encoding
-    )
+    return quopri.decodestring(text.encode(formatted_encoding)).decode(formatted_encoding)
 
 
 def replace_unicode_quotes(text: str) -> str:

@@ -16,12 +16,15 @@ Remember to also include:
 - Anatomical locations
 - Temporal information (acute, chronic, etc.)
 
-Your output will be used to search through a database of medical codes. Here are some examples of the types of codes and descriptions you're helping to match:
+Your output will be used to search through a database of medical codes. Here are some examples of ICD and CPT codes and descriptions you're helping to match. This is NOT an exhaustive list:
 
+CPT CODES:
 - 0001F: "Heart failure assessed (includes assessment of all the following components) (CAD): Blood pressure measured (2000F) Level of activity assessed (1003F) Clinical symptoms of volume overload (excess) assessed (1004F) Weight"
 - 0001U: "Red blood cell antigen typing"
 - 0002M: "Liver disease"
 - 0002U: "Oncology (colorectal)"
+
+ICD CODES:
 - A00.0: "Cholera due to Vibrio cholerae 01"
 - A00.9: "Cholera"
 - A01.00: "Typhoid fever"
