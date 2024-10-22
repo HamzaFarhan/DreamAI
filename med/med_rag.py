@@ -234,7 +234,7 @@ if __name__ == "__main__":
     med_dir = Path("../../med_data")
     modifiers_file = med_dir / "modifiers2024.json"
     lance_db = lancedb.connect("med_db")
-    create_med_db(lance_db=lance_db, med_dir=med_dir, ems_model_device="mps")
+    create_med_db(lance_db=lance_db, med_dir=med_dir)
     extract_keywords(charts_dir=charts_dir)
     query_med_db(lance_db=lance_db, charts_dir=charts_dir)
     extract_claims(charts_dir=charts_dir, modifiers_file=modifiers_file)
