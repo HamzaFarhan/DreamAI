@@ -1,41 +1,18 @@
-**Patient:**  Maria Garcia,  Date of Birth: 1948-09-05, Female (F), Medical Record Number: 6432109
+**Patient:** Robert Jones, DOB: 1950-05-20, Gender: Male, Medical Record Number: RJ00001
+**Carrier Code:** UN002
+**State:** FL
+**Practice:** Sunshine Dermatology
+**Provider NPI:** 1122334455
+**Default Place of Service:** 11
 
-**Carrier Code:**  MC72318 (Aetna)
+**Date of Service:** 2024-07-25
 
-**State:** FL (Florida)
+**Chief Complaint:**  Multiple actinic keratoses on face.
 
+**History of Present Illness:** Patient has a history of chronic sun exposure. Presents today for treatment of multiple actinic keratoses on his forehead and nose.
 
-**Practice:**  Sunshine Senior Care
+**Physical Examination:**  Multiple hyperkeratotic lesions noted on the forehead and nose, consistent with actinic keratoses.
 
+**Assessment:**  Actinic keratoses, forehead and nose.
 
-**Provider NPI:**  1654987320
-
-
-**Default Place of Service:** 11 (Office)
-
-**Date of Service:**  2024-08-28
-
-
-**Chief Complaint:**  Follow up for diabetes.
-
-**History of Present Illness:** Patient reports adherence to her diabetes medication and diet plan. She denies any recent hypoglycemic or hyperglycemic episodes.
-
-**Past Medical History:** Type 2 diabetes mellitus, diagnosed 5 years ago.
-
-**Medications:** Metformin 500mg twice daily.
-
-**Allergies:**  None.
-
-
-**Physical Exam:**  Normal physical exam.
-
-
-**Assessment:** Type 2 diabetes mellitus, well-controlled.
-
-
-
-**Plan:**
-* Hemoglobin A1c.
-* Comprehensive metabolic panel.
-* Review of diet and exercise plan.
-* Follow up appointment in 3 months.
+**Plan:**  Cryotherapy destruction of 7 actinic keratoses. Patient to follow up in 3 months for re-evaluation.

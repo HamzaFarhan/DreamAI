@@ -1,39 +1,18 @@
-**Patient:** John Smith, Date of Birth: 1962-12-24, Male (M), Medical Record Number: 9012345
+**Patient:** Jane Smith, DOB: 1965-11-02, Gender: Female, Medical Record Number: JS98765
+**Carrier Code:** BC001
+**State:** NY
+**Practice:** City Hospital
+**Provider NPI:** 9087654321
+**Default Place of Service:** 22
 
-**Carrier Code:** 1194533 (United Healthcare)
+**Date of Service:** 2024-07-22
 
-**State:** NY (New York)
+**Chief Complaint:**  Follow up for basal cell carcinoma removal.
 
-**Practice:**  City General Hospital
+**History of Present Illness:** Patient presented two weeks ago for removal of a basal cell carcinoma on her left cheek.  Returning today for suture removal and wound check. Wound healing well, no signs of infection.
 
-**Provider NPI:** 0192837465
+**Physical Examination:**  Well-healed scar on left cheek. Sutures intact.
 
-**Default Place of Service:** 23 (Emergency Room)
+**Assessment:**  Status post basal cell carcinoma excision, left cheek, healing well.
 
-**Date of Service:** 2024-08-10
-
-
-**Chief Complaint:** Shortness of breath and cough.
-
-**History of Present Illness:** Patient presents to the ER with worsening shortness of breath and cough over the past 2 days. He reports productive cough with thick, yellow sputum. He denies chest pain but reports feeling feverish.
-
-**Past Medical History:**  Type 2 Diabetes Mellitus, Hypertension. COPD.
-
-**Medications:**  Metformin 1000mg twice daily, Lisinopril 20mg daily,  Albuterol inhaler as needed.
-
-**Allergies:**  Sulfa drugs.
-
-
-**Physical Exam:**  Increased respiratory rate, diffuse wheezing on lung auscultation.
-
-
-**Assessment:** COPD exacerbation with suspected pneumonia.
-
-
-**Plan:**
-* Chest X-ray.
-* Oxygen therapy.
-* Albuterol nebulizer treatments.
-* Ceftriaxone 1g IV.
-* Blood cultures.
-* Complete metabolic panel.
+**Plan:**  Suture removal.  Patient to follow up in 6 months to monitor for recurrence.

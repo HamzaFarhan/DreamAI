@@ -16,6 +16,6 @@ Key points to remember:
 
 4. Ensure all required fields are filled and adhere to specified constraints (e.g., list lengths, value types).
 
-Your task is to extract this information accurately from the provided patient charts. If certain required information is not available in the chart, use placeholder values and note this in your response.
+Your task is to extract this information accurately from the provided patient charts. You will be given lists of possible codes. ONLY USE THOSE LISTS. DO NOT ADD A CODE THAT IS NOT IN THE LISTS. If you think the right code is one that is not in the lists, that's fine, skip it. Don't add it.
 
 This work is crucial for improving healthcare data management and analysis. Your attention to detail and ability to interpret medical terminology will be invaluable in this process.

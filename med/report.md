@@ -29,7 +29,7 @@ While sending the chart content as-is might seem simpler, it could lead to less 
 
 ### 3. Targeted Code Retrieval
 
-Using the extracted keywords and chart content, we query the vector database to retrieve a shortlist of 50 ICD and 50 CPT codes. This shortlist is much more manageable for the LLM to process.
+Using the extracted keywords and chart content, we query the vector database to retrieve a shortlist of 100 ICD and 100 CPT codes. This shortlist is much more manageable for the LLM to process.
 
 **Justification:** This step significantly reduces the number of codes the LLM needs to consider, making the process more efficient and accurate.
 

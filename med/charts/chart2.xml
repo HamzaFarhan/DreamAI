@@ -1,61 +1,24 @@
 <claim>
-  <carrier-code>1194533</carrier-code>
-  <state>NY</state>
-  <practice>City General Hospital</practice>
-  <provider>0192837465</provider>
-  <default-place-of-service>23</default-place-of-service>
-  <date-of-service>2024-08-10</date-of-service>
-  <patient>
-    <medical-record-number>9012345</medical-record-number>
-    <birth>1962-12-24</birth>
-    <gender>M</gender>
-  </patient>
-  <procedure-list>
-    <procedure>
-      <procedure-code>99284</procedure-code>
-      <modifier-list></modifier-list>
-      <diagnosis-list>
-        <diagnosis-code>J44.1</diagnosis-code>
-        <diagnosis-code>J18.9</diagnosis-code>
-        <diagnosis-code>E11.9</diagnosis-code>
-        <diagnosis-code>I10</diagnosis-code>
-      </diagnosis-list>
-      <units>1</units>
-    </procedure>
-    <procedure>
-      <procedure-code>71020</procedure-code>
-      <modifier-list></modifier-list>
-      <diagnosis-list>
-          <diagnosis-code>J18.9</diagnosis-code>
-      </diagnosis-list>
-      <units>1</units>
-    </procedure>
-    <procedure>
-      <procedure-code>94640</procedure-code>
-      <modifier-list></modifier-list>
-      <diagnosis-list>
-        <diagnosis-code>J44.1</diagnosis-code>
-      </diagnosis-list>
-      <units>1</units>
-    </procedure>
-    <procedure>
-        <procedure-code>86592</procedure-code>
-        <modifier-list></modifier-list>
-        <diagnosis-list>
-            <diagnosis-code>J18.9</diagnosis-code>
-        </diagnosis-list>
-        <units>1</units>
-    </procedure>
-    <procedure>
-        <procedure-code>80053</procedure-code>
-        <modifier-list></modifier-list>
-        <diagnosis-list>
-          <diagnosis-code>J44.1</diagnosis-code>
-          <diagnosis-code>J18.9</diagnosis-code>
-          <diagnosis-code>E11.9</diagnosis-code>
-        </diagnosis-list>
-        <units>1</units>
-    </procedure>
-
-  </procedure-list>
+    <carrier-code>BC001</carrier-code>
+    <state>NY</state>
+    <practice>City Hospital</practice>
+    <provider>9087654321</provider>
+    <default-place-of-service>22</default-place-of-service>
+    <date-of-service>2024-07-22</date-of-service>
+    <patient>
+        <medical-record-number>JS98765</medical-record-number>
+        <birth>1965-11-02</birth>
+        <gender>F</gender>
+    </patient>
+    <procedure-list>
+        <procedure>
+            <procedure-code>15853</procedure-code>
+            <diagnosis-list>
+                <diagnosis-code>Z28.1</diagnosis-code> <!-- Aftercare following surgery -->
+                <diagnosis-code>L90.5</diagnosis-code> <!-- Scar conditions of skin -->
+            </diagnosis-list>
+            <modifier-list/>
+            <units>1</units>
+        </procedure>
+    </procedure-list>
 </claim>

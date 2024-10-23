@@ -15,12 +15,18 @@ from dreamai.dialog import Dialog
 from dreamai.lance_utils import add_to_lance_table, search_lancedb
 from dreamai.md_utils import MarkdownChunk
 
-MODEL = ModelName.GEMINI_FLASH
+MODEL = ModelName.SONNET
+MAX_SEARCH_RESULTS = 100
 
 
 date_type = Annotated[date, AfterValidator(lambda d: d.strftime("%Y-%m-%d"))]
-diagnosis_code = Annotated[str, Field(..., description="An ICD code")]
-modifier_code = Annotated[str, Field(..., description="A 2-character modifier code")]
+reasoning = Annotated[
+    str,
+    Field(
+        ...,
+        description="Explain why you chose this code. The explanation should mention the code's description and what text in the claim matched with that description.",
+    ),
+]
 
 
 class Patient(BaseModel):
@@ -32,16 +38,27 @@ class Patient(BaseModel):
     gender: Literal["M", "F"]
 
 
-class Modifier(BaseModel):
+class ModifierItem(BaseModel):
     modifier_code: str = Field(..., description="A 2-character modifier code")
+    modifier_code_reasoning: reasoning
+
+
+class Modifier(BaseModel):
+    modifier: ModifierItem
+
+
+class DiagnosisItem(BaseModel):
+    diagnosis_code: str = Field(..., description="An ICD code")
+    diagnosis_code_reasoning: reasoning
 
 
 class Diagnosis(BaseModel):
-    diagnosis_code: str = Field(..., description="An ICD code")
+    diagnosis: DiagnosisItem
 
 
-class Procedure(BaseModel):
+class ProcedureItem(BaseModel):
     procedure_code: str = Field(..., description="A CPT code")
+    procedure_code_reasoning: reasoning
     from_date: date_type = Field(
         ...,
         description="The starting date on which the procedure was performed. This field can be the same as the date-of-service",
@@ -65,6 +82,10 @@ class Procedure(BaseModel):
     unitstime: int | None = Field(
         None, description="Number of minutes spent doing the procedure (optional)"
     )
+
+
+class Procedure(BaseModel):
+    procedure: ProcedureItem
 
 
 class Claim(BaseModel):
@@ -163,7 +184,7 @@ def query_med_db(
     lance_db: LanceDBConnection,
     charts_dir: str | Path,
     reranker: str | Reranker | None = "answerdotai/answerai-colbert-small-v1",
-    max_search_results: int = 50,
+    max_search_results: int = MAX_SEARCH_RESULTS,
     overwrite: bool = False,
 ):
     for file in Path(charts_dir).glob("*_kw.json"):
@@ -176,16 +197,29 @@ def query_med_db(
         if isinstance(reranker, str):
             reranker = ColbertReranker(model_name=reranker)
         kws = json.loads(file.read_text())
-        kws.extend(
-            [
-                s.replace(": ", "- ").replace("-", " ").strip(":").strip("-").strip()
-                for s in re.sub(
-                    r"\n+",
-                    "\n",
-                    file.with_name(file.name.replace("_kw.json", ".md")).read_text(),
-                ).splitlines()
-            ]
+        claim_content = re.sub(
+            r"\n+", "\n", file.with_name(file.name.replace("_kw.json", ".md")).read_text()
         )
+        # claim_content = [
+        #     (
+        #         claim_content.replace("**", "")
+        #         .replace(": ", "- ")
+        #         .replace("-", " ")
+        #         .strip(":")
+        #         .strip("-")
+        #         .strip()
+        #     )
+        # ]
+        claim_content = [
+            s.replace("**", "")
+            .replace(": ", "- ")
+            .replace("-", " ")
+            .strip(":")
+            .strip("-")
+            .strip()
+            for s in claim_content.splitlines()
+        ]
+        kws.extend(claim_content)
         res = {}
         for table_name in lance_db.table_names():
             logger.info(f"Querying table: {table_name} for: {file.stem}")
@@ -231,8 +265,8 @@ def extract_claims(
 
 if __name__ == "__main__":
     charts_dir = "charts"
-    med_dir = Path("../../med_data")
-    modifiers_file = med_dir / "modifiers2024.json"
+    med_dir = Path("/media/hamza/data2/med_codes")
+    modifiers_file = med_dir / "modifier2024.json"
     lance_db = lancedb.connect("med_db")
     create_med_db(lance_db=lance_db, med_dir=med_dir)
     extract_keywords(charts_dir=charts_dir)

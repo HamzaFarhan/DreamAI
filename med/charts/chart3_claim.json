@@ -1,57 +1,28 @@
 {
-  "carrier_code": "MC051",
-  "state": "CA",
-  "practice": "SFGH123",
-  "provider": "1234567890",
-  "default_place_of_service": "23",
-  "date_of_service": "2023-11-10",
+  "carrier_code": "UN002",
+  "state": "FL",
+  "practice": "Sunshine Dermatology",
+  "provider": "1122334455",
+  "default_place_of_service": "11",
+  "date_of_service": "2024-07-25",
   "patient": {
-    "medical_record_number": "ER112233",
-    "birth": "1998-07-19",
-    "gender": "F"
+    "medical_record_number": "RJ00001",
+    "birth": "1950-05-20",
+    "gender": "M"
   },
   "procedure_list": [
     {
-      "procedure_code": "99285",
-      "from_date": "2023-11-10",
-      "to_date": "2023-11-11",
-      "modifier_list": [],
-      "diagnosis_list": [
-        {
-          "diagnosis_code": "K35.9"
-        }
-      ],
-      "place_of_service": null,
-      "units": 1,
-      "unitstime": null
-    },
-    {
-      "procedure_code": "36415",
-      "from_date": "2023-11-10",
-      "to_date": "2023-11-10",
-      "modifier_list": [],
-      "diagnosis_list": [
-        {
-          "diagnosis_code": "K35.9"
-        }
-      ],
-      "place_of_service": null,
-      "units": 1,
-      "unitstime": null
-    },
-    {
-      "procedure_code": "74170",
-      "from_date": "2023-11-10",
-      "to_date": "2023-11-10",
-      "modifier_list": [],
-      "diagnosis_list": [
-        {
-          "diagnosis_code": "K35.9"
-        }
-      ],
-      "place_of_service": null,
-      "units": 1,
-      "unitstime": null
+      "procedure": {
+        "procedure_code": "10040",
+        "procedure_code_reasoning": "The procedure code 10040 describes \"Acne surgery (eg, comedone extraction)\".  The patient chart mentions \"Cryotherapy destruction of 7 actinic keratoses\", which is a type of acne surgery.",
+        "from_date": "2024-07-25",
+        "to_date": "2024-07-25",
+        "modifier_list": [],
+        "diagnosis_list": [],
+        "place_of_service": null,
+        "units": 7,
+        "unitstime": null
+      }
     }
   ]
 }

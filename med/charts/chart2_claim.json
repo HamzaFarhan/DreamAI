@@ -1,70 +1,28 @@
 {
   "carrier_code": "BC001",
   "state": "NY",
-  "practice": "DIAB456",
-  "provider": "9876543210",
-  "default_place_of_service": "11",
-  "date_of_service": "2023-10-03",
+  "practice": "City Hospital",
+  "provider": "9087654321",
+  "default_place_of_service": "22",
+  "date_of_service": "2024-07-22",
   "patient": {
-    "medical_record_number": "MT445566",
-    "birth": "1972-11-28",
-    "gender": "M"
+    "medical_record_number": "JS98765",
+    "birth": "1965-11-02",
+    "gender": "F"
   },
   "procedure_list": [
     {
-      "procedure_code": "99214",
-      "from_date": "2023-10-03",
-      "to_date": "2023-10-03",
-      "modifier_list": [],
-      "diagnosis_list": [
-        {
-          "diagnosis_code": "E11.9"
-        },
-        {
-          "diagnosis_code": "M16.9"
-        },
-        {
-          "diagnosis_code": "E66.9"
-        },
-        {
-          "diagnosis_code": "E78.5"
-        }
-      ],
-      "place_of_service": null,
-      "units": 1,
-      "unitstime": null
-    },
-    {
-      "procedure_code": "29530",
-      "from_date": "2023-10-03",
-      "to_date": "2023-10-03",
-      "modifier_list": [
-        {
-          "modifier_code": "50"
-        }
-      ],
-      "diagnosis_list": [
-        {
-          "diagnosis_code": "M16.9"
-        }
-      ],
-      "place_of_service": null,
-      "units": 2,
-      "unitstime": null
-    },
-    {
-      "procedure_code": "82041",
-      "from_date": "2023-10-03",
-      "to_date": "2023-10-03",
-      "modifier_list": [],
-      "diagnosis_list": [
-        {
-          "diagnosis_code": "E11.9"
-        }
-      ],
-      "place_of_service": null,
-      "units": 1,
-      "unitstime": null
+      "procedure": {
+        "procedure_code": "11600",
+        "procedure_code_reasoning": "The patient chart mentions the removal of a basal cell carcinoma.  Code 11600, \"Excision of benign lesion,\" is selected because it aligns with the removal of a non-cancerous growth.",
+        "from_date": "2024-07-22",
+        "to_date": "2024-07-22",
+        "modifier_list": [],
+        "diagnosis_list": [],
+        "place_of_service": null,
+        "units": 1,
+        "unitstime": null
+      }
     }
   ]
 }

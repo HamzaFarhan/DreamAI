@@ -1,51 +1,35 @@
 {
-  "carrier_code": "AE002",
-  "state": "MA",
-  "practice": "PULM789",
-  "provider": "5432109876",
+  "carrier_code": "MC051",
+  "state": "CA",
+  "practice": "GoodHealth Clinic",
+  "provider": "1234567890",
   "default_place_of_service": "11",
-  "date_of_service": "2023-09-15",
+  "date_of_service": "2024-07-20",
   "patient": {
-    "medical_record_number": "SJ778899",
-    "birth": "1985-03-12",
-    "gender": "F"
+    "medical_record_number": "JD12345",
+    "birth": "1980-03-15",
+    "gender": "M"
   },
   "procedure_list": [
     {
-      "procedure_code": "94760",
-      "from_date": "2023-09-15",
-      "to_date": "2023-09-15",
-      "modifier_list": [
-        {
-          "modifier_code": "26"
-        }
-      ],
-      "diagnosis_list": [
-        {
-          "diagnosis_code": "J20.9"
-        }
-      ],
-      "place_of_service": null,
-      "units": 1,
-      "unitstime": null
-    },
-    {
-      "procedure_code": "71010",
-      "from_date": "2023-09-15",
-      "to_date": "2023-09-15",
-      "modifier_list": [
-        {
-          "modifier_code": "26"
-        }
-      ],
-      "diagnosis_list": [
-        {
-          "diagnosis_code": "J20.9"
-        }
-      ],
-      "place_of_service": null,
-      "units": 1,
-      "unitstime": null
+      "procedure": {
+        "procedure_code": "27603",
+        "procedure_code_reasoning": "The patient presented with right knee pain and swelling, and the physician's plan included a right knee arthrocentesis.  The code 27603, \"Incision and drainage\", is the closest available code that aligns with this procedure.",
+        "from_date": "2024-07-20",
+        "to_date": "2024-07-20",
+        "modifier_list": [],
+        "diagnosis_list": [
+          {
+            "diagnosis": {
+              "diagnosis_code": "M23.56",
+              "diagnosis_code_reasoning": "This code represents 'Chronic instability of knee, right knee', which accurately describes the patient's presenting symptoms of right knee pain and swelling. It aligns with the need for arthrocentesis and supports the medical necessity of the procedure."
+            }
+          }
+        ],
+        "place_of_service": null,
+        "units": 1,
+        "unitstime": null
+      }
     }
   ]
 }

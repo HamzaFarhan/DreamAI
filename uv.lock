@@ -390,6 +390,15 @@ wheels = [
 ]
 
 [[package]]
+name = "defusedxml"
+version = "0.7.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/0f/d5/c66da9b79e5bdb124974bfe172b4daf3c984ebd9c2a06e2b8a4dc7331c72/defusedxml-0.7.1.tar.gz", hash = "sha256:1bb3032db185915b62d7c6209c5a8792be6a32ab2fedacc84e01b52c51aa3e69", size = 75520 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/07/6c/aa3f2f849e01cb6a001cd8554a88d4c77c5c1a31c95bdf1cf9301e6d9ef4/defusedxml-0.7.1-py2.py3-none-any.whl", hash = "sha256:a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61", size = 25604 },
+]
+
+[[package]]
 name = "demoji"
 version = "1.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -448,6 +457,7 @@ dependencies = [
     { name = "graphviz" },
     { name = "html2text" },
     { name = "instructor" },
+    { name = "json2xml" },
     { name = "jsonref" },
     { name = "lancedb" },
     { name = "loguru" },
@@ -497,6 +507,7 @@ requires-dist = [
     { name = "graphviz", specifier = ">=0.20.3" },
     { name = "html2text", specifier = ">=2024.2.26" },
     { name = "instructor", specifier = ">=1.4.0" },
+    { name = "json2xml", specifier = ">=5.0.5" },
     { name = "jsonref", specifier = ">=1.1.0" },
     { name = "lancedb", specifier = ">=0.12.0" },
     { name = "loguru", specifier = ">=0.7.2" },
@@ -1108,6 +1119,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/64/33/60135848598c076ce4b231e1b1895170f45fbcaeaa2c9d5e38b04db70c35/joblib-1.4.2.tar.gz", hash = "sha256:2382c5816b2636fbd20a09e0f4e9dad4736765fdfb7dca582943b9c1366b3f0e", size = 2116621 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/91/29/df4b9b42f2be0b623cbd5e2140cafcaa2bef0759a00b7b70104dcfe2fb51/joblib-1.4.2-py3-none-any.whl", hash = "sha256:06d478d5674cbc267e7496a410ee875abd68e4340feff4490bcb7afb88060ae6", size = 301817 },
+]
+
+[[package]]
+name = "json2xml"
+version = "5.0.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "defusedxml" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f3/c5/b66499a21acaca87cd90e32325e80ec7595418c0793e0f76983df3f14e02/json2xml-5.0.5.tar.gz", hash = "sha256:232d7b8a8a7dfbec1efbee75207a75a91496156fe0cf40cfeace43d6effe16c1", size = 29234 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ad/93/ba6b8a892fa443477ccba51d80d294c15d08f849951b75f0a0c00805df1d/json2xml-5.0.5-py3-none-any.whl", hash = "sha256:9435c896729d4108d84d18fb03c550fd75dbf17666daf0f214f763a424c4d447", size = 14091 },
 ]
 
 [[package]]
