@@ -53,25 +53,16 @@ def add_data_with_descriptions(
         table_name = md_data.name
         table_description: TableDescription = _query_to_response(
             model=model,
-            dialog=Dialog.load(
-                path=str(Path(DIALOGS_FOLDER) / "table_description_dialog.json")
-            ),
+            dialog=Dialog.load(path=str(Path(DIALOGS_FOLDER) / "table_description_dialog.json")),
             response_model=TableDescription,
             template_data={
                 "database_name": table_name,
                 "sample_text": md_data.markdown[:SAMPLE_TEXT_LIMIT],
-                "current_databases": [
-                    td.model_dump_json(indent=2)
-                    for td in table_descriptions_dict.values()
-                ],
+                "current_databases": [td.model_dump_json(indent=2) for td in table_descriptions_dict.values()],
             },
         )
-        table_description = table_descriptions_dict.get(
-            table_description.name, table_description
-        )
+        table_description = table_descriptions_dict.get(table_description.name, table_description)
         table_descriptions_dict[table_description.name] = table_description
-        add_to_lance_table(
-            db=lance_db, table_name=table_description.name, data=md_data.chunks
-        )
+        add_to_lance_table(db=lance_db, table_name=table_description.name, data=md_data.chunks)
 
     return list(table_descriptions_dict.values())

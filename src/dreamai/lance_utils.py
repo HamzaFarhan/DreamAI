@@ -28,11 +28,7 @@ def get_lance_ems_model(name: str = EMS_MODEL, device: str = DEVICE):
     return get_registry().get("sentence-transformers").create(name=name, device=device)
 
 
-def create_lance_schema(
-    ems_model,
-    name: str = "LanceChunk",
-    metadata: dict | None = None,
-) -> Type[LanceModel]:
+def create_lance_schema(ems_model, name: str = "LanceChunk", metadata: dict | None = None) -> Type[LanceModel]:
     metadata = metadata or {}
     fields = {
         "name": (str, ...),
@@ -55,19 +51,12 @@ def add_to_lance_table(
     if schema is None:
         if isinstance(ems_model, str):
             ems_model = get_lance_ems_model(name=ems_model, device=ems_model_device)
-        schema = create_lance_schema(
-            ems_model=ems_model, metadata=data[0].model_dump()["metadata"]
-        )
+        schema = create_lance_schema(ems_model=ems_model, metadata=data[0].model_dump()["metadata"])
     if table_name in db.table_names():
         table = db.open_table(table_name)
     else:
         table = db.create_table(name=table_name, schema=schema)
-    table.add(
-        data=[
-            {**chunk.model_dump(by_alias=True, exclude={"metadata"}), **chunk.metadata}
-            for chunk in data
-        ]
-    )
+    table.add(data=[{**chunk.model_dump(by_alias=True, exclude={"metadata"}), **chunk.metadata} for chunk in data])
     table.create_fts_index(field_names=TEXT_FIELD_NAME, replace=True)  # type: ignore
     return table
 

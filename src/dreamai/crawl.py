@@ -21,7 +21,7 @@ class DAICrawler:
         max_links: int = 100,
         file_path: str = "crawled_data.json",
         overwrite: bool = True,
-        rate_limit: float = 0.5,
+        rate_limit: float = 0.5
     ):
         if overwrite:
             Path(file_path).unlink(missing_ok=True)
@@ -36,25 +36,19 @@ class DAICrawler:
     async def extract_data(self, page: Page) -> dict:
         data = {}
         data["title"] = await page.title()
-        description = await page.evaluate(
-            "document.querySelector('meta[name=\"description\"]')?.content"
-        )
+        description = await page.evaluate("document.querySelector('meta[name=\"description\"]')?.content")
         if description:
             data["meta_description"] = description
         content = await page.content()
         soup = BeautifulSoup(content, "html.parser")
-        main_content = (
-            soup.find("main") or soup.find(id="content") or soup.find(class_="content")
-        )
+        main_content = soup.find("main") or soup.find(id="content") or soup.find(class_="content")
         if main_content:
             data["main_content"] = main_content.get_text(strip=True)
         else:
             data["main_content"] = soup.body.get_text(strip=True) if soup.body else ""
         data["headings"] = []
         for heading in soup.find_all(["h1", "h2", "h3"]):
-            data["headings"].append(
-                {"level": heading.name, "text": heading.get_text(strip=True)}
-            )
+            data["headings"].append({"level": heading.name, "text": heading.get_text(strip=True)})
         data["links"] = []
         for link in soup.find_all("a", href=True):
             data["links"].append({"text": link.get_text(strip=True), "href": link["href"]})

@@ -72,10 +72,7 @@ def chunk_text(
         if (
             not current_chunk
             or len(current_chunk) + len(chunk) <= chunk_size
-            or (
-                (len(chunk) < min_chunk_size)
-                and (len(current_chunk) + len(chunk) <= chunk_size * 2)
-            )
+            or ((len(chunk) < min_chunk_size) and (len(current_chunk) + len(chunk) <= chunk_size * 2))
         ):
             current_chunk += (" " if current_chunk else "") + chunk
         else:
@@ -143,9 +140,7 @@ def noop(x=None, *args, **kwargs):  # noqa
     return x
 
 
-def resolve_data_path(
-    data_path: list[str | Path] | str | Path, file_extension: str | None = None
-) -> chain:
+def resolve_data_path(data_path: list[str | Path] | str | Path, file_extension: str | None = None) -> chain:
     if not isinstance(data_path, list):
         data_path = [data_path]
     paths = []
@@ -214,7 +209,12 @@ def _process_content(content: str | Path | list[str]) -> str:
 
 def format_encoding_str(encoding: str) -> str:
     formatted_encoding = encoding.lower().replace("_", "-")
-    annotated_encodings = ["iso-8859-6-i", "iso-8859-6-e", "iso-8859-8-i", "iso-8859-8-e"]
+    annotated_encodings = [
+        "iso-8859-6-i",
+        "iso-8859-6-e",
+        "iso-8859-8-i",
+        "iso-8859-8-e",
+    ]
     if formatted_encoding in annotated_encodings:
         formatted_encoding = formatted_encoding[:-2]
     return formatted_encoding
@@ -246,9 +246,7 @@ def group_broken_paragraphs(
             continue
         para_split = line_split.split(paragraph)
         all_lines_short = all(len(line.strip().split(" ")) < 5 for line in para_split)
-        if UNICODE_BULLETS_RE.match(paragraph.strip()) or E_BULLET_PATTERN.match(
-            paragraph.strip()
-        ):
+        if UNICODE_BULLETS_RE.match(paragraph.strip()) or E_BULLET_PATTERN.match(paragraph.strip()):
             clean_paragraphs.extend(group_bullet_paragraph(paragraph))
         elif all_lines_short:
             clean_paragraphs.extend([line for line in para_split if line.strip()])
@@ -289,9 +287,7 @@ def replace_unicode_quotes(text: str) -> str:
     return text
 
 
-def clean_text(
-    text: str, no_digits: bool = False, no_emojis: bool = False, group: bool = False
-) -> str:
+def clean_text(text: str, no_digits: bool = False, no_emojis: bool = False, group: bool = False) -> str:
     text = re.sub(r"[\n+]", "\n", text)
     text = re.sub(r"[\t+]", " ", text)
     text = re.sub(r"[. .]", " ", text)

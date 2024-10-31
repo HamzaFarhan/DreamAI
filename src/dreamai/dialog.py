@@ -42,9 +42,7 @@ def load_dialog_str(content: Any) -> Any:
         except Exception:
             return string_path.read_text()
     if suffix in [".json", ".py", ".yaml", ".yml"]:
-        raise ValueError(
-            f"String must be a .txt file or a plain string. Suffix received: {suffix}"
-        )
+        raise ValueError(f"String must be a .txt file or a plain string. Suffix received: {suffix}")
     return str(string_path).strip()
 
 
@@ -121,9 +119,7 @@ class BadExample(Example):
 
     @classmethod
     def from_messages(cls, messages: list[MessageType]) -> Self:
-        assert (
-            len(messages) == 3 or len(messages) == 4
-        ), "BadExample must have exactly 3 or 4 messages"
+        assert len(messages) == 3 or len(messages) == 4, "BadExample must have exactly 3 or 4 messages"
         # assert (
         #     messages[0]["role"] == "user"
         #     and messages[1]["role"] == "assistant"
@@ -214,13 +210,9 @@ class Dialog(BaseModel):
     def load(cls, path: str | Path, include_chat_history: bool = True) -> Self:
         path = Path(path)
         assert path.suffix == ".json", "Path must be a .json file made by calling .save()"
-        return cls.from_dump(
-            json.loads(path.read_text()), include_chat_history=include_chat_history
-        )
+        return cls.from_dump(json.loads(path.read_text()), include_chat_history=include_chat_history)
 
-    def add_examples(
-        self, examples: list[Example | BadExample] | Example | BadExample
-    ) -> None:
+    def add_examples(self, examples: list[Example | BadExample] | Example | BadExample) -> None:
         if not isinstance(examples, list):
             examples = [examples]
         self.examples.extend(examples)
@@ -304,9 +296,7 @@ class Dialog(BaseModel):
         chat_history_limit: int = CHAT_HISTORY_LIMIT,
     ) -> dict[str, Any]:
         messages = self.get_shorter_messages(
-            messages=self._add_user_query(
-                messages=self.messages, user=user, template_data=template_data
-            ),
+            messages=self._add_user_query(messages=self.messages, user=user, template_data=template_data),
             chat_history_limit=chat_history_limit,
         )
         if messages[0]["role"] == "system":
@@ -321,9 +311,7 @@ class Dialog(BaseModel):
     ) -> dict[str, Any]:
         return {
             "messages": self.get_shorter_messages(
-                messages=self._add_user_query(
-                    messages=self.messages, user=user, template_data=template_data
-                ),
+                messages=self._add_user_query(messages=self.messages, user=user, template_data=template_data),
                 chat_history_limit=chat_history_limit,
             ),
         }
@@ -371,9 +359,7 @@ class Dialog(BaseModel):
         creator_kwargs["max_retries"] = ATTEMPTS
         return creator, creator_kwargs
 
-    def bump_version(
-        self, new_version: float | None = None, name: str = "", save: bool = True
-    ):
+    def bump_version(self, new_version: float | None = None, name: str = "", save: bool = True):
         if new_version is None:
             num_decimal_places = str(self.version)[::-1].find(".")
             new_version = round(self.version + 10**-num_decimal_places, num_decimal_places)

@@ -35,9 +35,7 @@ ASSERTION_CATEGORIES = Literal[
 ]
 
 
-def validate_sentence_components(
-    x: list[str], max_components: int = MAX_SENTENCE_COMPONENTS
-) -> list[str]:
+def validate_sentence_components(x: list[str], max_components: int = MAX_SENTENCE_COMPONENTS) -> list[str]:
     return list(set(x[:max_components]))
 
 
@@ -160,9 +158,7 @@ class ThoughtProcess(BaseModel):
 
 class SourcedSentence(BaseModel):
     text: str
-    sources: list[int] = Field(
-        default_factory=lambda: [-1], description="The source document indices."
-    )
+    sources: list[int] = Field(default_factory=lambda: [-1], description="The source document indices.")
     # thought_process: ThoughtProcess
 
     @model_validator(mode="after")
@@ -174,14 +170,9 @@ class SourcedSentence(BaseModel):
             return self
         documents = context.get("documents", 0)
         self.sources = list(
-            dict.fromkeys(
-                -1 if source < -1 or source >= len(documents) else source
-                for source in self.sources
-            )
+            dict.fromkeys(-1 if source < -1 or source >= len(documents) else source for source in self.sources)
         )
-        self._source_docs = [
-            documents[source] for source in self.sources if source != -1
-        ]
+        self._source_docs = [documents[source] for source in self.sources if source != -1]
         return self
 
     def __str__(self) -> str:
@@ -190,22 +181,14 @@ class SourcedSentence(BaseModel):
 
 
 class SourcedResponse(BaseModel):
-    sentences: list[SourcedSentence] = Field(
-        min_length=1, max_length=MAX_RESPONSE_SENTENCES
-    )
+    sentences: list[SourcedSentence] = Field(min_length=1, max_length=MAX_RESPONSE_SENTENCES)
 
     @model_validator(mode="after")
     def validate_sources(self, info: ValidationInfo) -> Self:
         context = info.context or {}
-        max_non_sourced_factor = context.get(
-            "max_non_sourced_factor", MAX_NON_SOURCED_FACTOR
-        )
-        non_sourced_sentences = [
-            sentence for sentence in self.sentences if sentence.sources == [-1]
-        ]
-        self._sure = len(non_sourced_sentences) <= max_non_sourced_factor * len(
-            self.sentences
-        )
+        max_non_sourced_factor = context.get("max_non_sourced_factor", MAX_NON_SOURCED_FACTOR)
+        non_sourced_sentences = [sentence for sentence in self.sentences if sentence.sources == [-1]]
+        self._sure = len(non_sourced_sentences) <= max_non_sourced_factor * len(self.sentences)
         self._source_docs = [sentence._source_docs for sentence in self.sentences]
         return self
 
@@ -222,9 +205,7 @@ class EvalWithReasoning(BaseModel):
 
 
 class ThoughtfulResponse(BaseModel):
-    thought_process: ThoughtProcess = Field(
-        description="The thought process of the assistant."
-    )
+    thought_process: ThoughtProcess = Field(description="The thought process of the assistant.")
     response: str = Field(description="The actual response of the assistant.")
 
     def __str__(self) -> str:
@@ -244,8 +225,6 @@ def model_with_typed_response(
 ) -> type[BaseModel]:
     if isinstance(response_type, list):
         response_type = Literal[*response_type]  # type: ignore
-    model = create_model(
-        model_name, response=(response_type, response_value or ...), __base__=base
-    )
+    model = create_model(model_name, response=(response_type, response_value or ...), __base__=base)
     setattr(model, "__str__", lambda self: str(self.response))
     return model

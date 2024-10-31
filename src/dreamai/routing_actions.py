@@ -7,13 +7,7 @@ from loguru import logger
 from pydantic import BaseModel, Field, model_validator
 
 from dreamai.ai import ModelName
-from dreamai.dialog import (
-    BadExample,
-    Dialog,
-    MessageType,
-    assistant_message,
-    user_message,
-)
+from dreamai.dialog import BadExample, Dialog, MessageType, assistant_message, user_message
 from dreamai.dialog_models import (
     EvalWithReasoning,
     ResponseWithConfidence,
@@ -45,27 +39,21 @@ class StepWithConfidence(BaseModel):
     def validate_disclaimer(self) -> Self:
         if not self.comment:
             if self.confidence <= STEP_CONFIDENCE_THRESHOLD:
-                self.comment = f"I believe the next step is {self.step}. But I'm only {self.confidence*100:.0f}% confident."
+                self.comment = (
+                    f"I believe the next step is {self.step}. But I'm only {self.confidence*100:.0f}% confident."
+                )
             else:
                 self.comment = f"I am {self.confidence*100:.0f}% confident that the next step is {self.step}."
         return self
 
 
 def _query_to_route(
-    query: str,
-    model: ModelName,
-    routes: list[Any],
-    chat_history: list[MessageType] | None = None,
+    query: str, model: ModelName, routes: list[Any], chat_history: list[MessageType] | None = None
 ) -> StepWithConfidence:
     response_model = model_with_typed_response(
-        model_name="RouteWithConfidence",
-        response_type=routes,
-        base=ResponseWithConfidence,
+        model_name="RouteWithConfidence", response_type=routes, base=ResponseWithConfidence
     )
-    dialog = Dialog(
-        task=str(Path(DIALOGS_FOLDER) / "router_task.txt"),
-        chat_history=chat_history or [],
-    )
+    dialog = Dialog(task=str(Path(DIALOGS_FOLDER) / "router_task.txt"), chat_history=chat_history or [])
     response = _query_to_response(
         query=query,
         model=model,
@@ -86,37 +74,25 @@ def _get_route(query: str) -> tuple[str, str]:
         route = RAGRoute.ROUTER
     elif "@web" in query.lower():
         route = RAGRoute.WEB
-    return route, query.replace("@ai", "").replace("@data", "").replace(
-        "@web", ""
-    ).strip()
+    return route, query.replace("@ai", "").replace("@data", "").replace("@web", "").strip()
 
 
 def _tables_menu(
-    table: str,
-    table_names: list[str],
-    confidence: float,
-    only_data: bool = False,
-    has_web: bool = False,
+    table: str, table_names: list[str], confidence: float, only_data: bool = False, has_web: bool = False
 ) -> list[str]:
     menu = [f"{i}. {table_name}" for i, table_name in enumerate(table_names, start=1)]
     menu.append(f"{len(menu) + 1}. Use the selected table: {table}")
     if not only_data:
         if has_web:
             menu.append(f"{len(menu) + 1}. Search the web")
-        menu.append(
-            f"{len(menu) + 1}. Ignore tables and answering from general knowledge"
-        )
+        menu.append(f"{len(menu) + 1}. Ignore tables and answering from general knowledge")
     menu.append(f"\nJust the number (1-{len(menu)}) > ")
-    menu.insert(
-        0,
-        f"\n\nI've selected a table but I'm only {confidence*100:.0f}% confident. What should I do?\n",
-    )
+    menu.insert(0, f"\n\nI've selected a table but I'm only {confidence*100:.0f}% confident. What should I do?\n")
     return menu
 
 
 @action(
-    reads=["only_ai", "only_data", "only_web", "steps"],
-    writes=["query", "response_type", "steps", "source_docs"],
+    reads=["only_ai", "only_data", "only_web", "steps"], writes=["query", "response_type", "steps", "source_docs"]
 )
 def get_query(
     state: State, query: str, response_type: list | type = str
@@ -193,8 +169,7 @@ def web_or_not(state: State) -> tuple[dict[str, StepWithConfidence], State]:
 
 
 @action(
-    reads=["db", "model", "query", "chat_history", "only_data", "has_web"],
-    writes=["table_name", "steps", "menu"],
+    reads=["db", "model", "query", "chat_history", "only_data", "has_web"], writes=["table_name", "steps", "menu"]
 )
 def router(
     state: State, table_descriptions: list[TableDescription] = []
@@ -209,19 +184,14 @@ def router(
             try:
                 response = _query_to_response(
                     model=state["model"],
-                    dialog=Dialog.load(
-                        path=str(Path(DIALOGS_FOLDER) / "table_selection_dialog.json")
-                    ),
+                    dialog=Dialog.load(path=str(Path(DIALOGS_FOLDER) / "table_selection_dialog.json")),
                     response_model=model_with_typed_response(
-                        model_name="TableWithConfidence",
-                        response_type=table_names,
-                        base=ResponseWithConfidence,
+                        model_name="TableWithConfidence", response_type=table_names, base=ResponseWithConfidence
                     ),
                     template_data={
                         "user_query": state["query"],
                         "database_list": [
-                            table_description.model_dump_json(indent=2)
-                            for table_description in table_descriptions
+                            table_description.model_dump_json(indent=2) for table_description in table_descriptions
                         ],
                     },
                     chat_history=state.get("chat_history", None),
@@ -248,30 +218,17 @@ def router(
         route = RAGRoute.WEB_OR_NOT
         confidence = DEFAULT_CONFIDENCE
     step = StepWithConfidence(step=route, confidence=confidence)
-    return {"step": step, "menu": menu}, state.update(table_name=route).append(
-        steps=step
-    ).update(menu=menu)
+    return {"step": step, "menu": menu}, state.update(table_name=route).append(steps=step).update(menu=menu)
 
 
 @action(
-    reads=[
-        "model",
-        "query",
-        "assistant_response",
-        "chat_history",
-        "source_docs",
-        "action_attempts",
-    ],
+    reads=["model", "query", "assistant_response", "chat_history", "source_docs", "action_attempts"],
     writes=["answer_evaluation", "action_attempts", "bad_interaction"],
 )
-def evaluate_answer(
-    state: State,
-) -> tuple[dict[str, int | EvalWithReasoning | BadExample | None], State]:
+def evaluate_answer(state: State) -> tuple[dict[str, int | EvalWithReasoning | BadExample | None], State]:
     dialog = Dialog.load(path=str(Path(DIALOGS_FOLDER) / "answer_eval_dialog.json"))
     user = dialog.template.format(
-        query=state["query"],
-        source_docs=state.get("source_docs", []),
-        answer=state["assistant_response"],
+        query=state["query"], source_docs=state.get("source_docs", []), answer=state["assistant_response"]
     )
     try:
         evaluation = _query_to_response(
@@ -290,8 +247,7 @@ def evaluate_answer(
         bad_interaction = BadExample(
             user=f"<source_docs>{state.get('source_docs', [])}</source_docs>\n\n<user>{state['query']}</user>",
             assistant=state["assistant_response"],
-            feedback=evaluation.reasoning
-            + f"\nThis was attempt: {action_attempts}/{ACTION_ATTEMPTS_LIMIT}.",
+            feedback=evaluation.reasoning + f"\nThis was attempt: {action_attempts}/{ACTION_ATTEMPTS_LIMIT}.",
         )
     else:
         action_attempts = 0
@@ -300,8 +256,4 @@ def evaluate_answer(
         "answer_evaluation": evaluation,
         "action_attempts": action_attempts,
         "bad_interaction": bad_interaction,
-    }, state.update(
-        answer_evaluation=evaluation,
-        action_attempts=action_attempts,
-        bad_interaction=bad_interaction,
-    )
+    }, state.update(answer_evaluation=evaluation, action_attempts=action_attempts, bad_interaction=bad_interaction)

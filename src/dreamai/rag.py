@@ -9,24 +9,9 @@ from loguru import logger
 from dreamai.ai import ModelName
 from dreamai.dialog import MessageType
 from dreamai.dialog_models import TableDescription
-from dreamai.response_actions import (
-    ask_assistant,
-    create_search_response,
-    terminate,
-    update_chat_history,
-)
-from dreamai.routing_actions import (
-    evaluate_answer,
-    followup_or_not,
-    get_query,
-    router,
-    web_or_not,
-)
-from dreamai.search_actions import (
-    create_step_back_questions,
-    search_lancedb,
-    search_web,
-)
+from dreamai.response_actions import ask_assistant, create_search_response, terminate, update_chat_history
+from dreamai.routing_actions import evaluate_answer, followup_or_not, get_query, router, web_or_not
+from dreamai.search_actions import create_step_back_questions, search_lancedb, search_web
 from dreamai.settings import CreatorSettings, RAGAppSettings, RAGRoute
 
 creator_settings = CreatorSettings()
@@ -96,17 +81,9 @@ def application(
             terminate,
         )
         .with_transitions(
-            (
-                "get_query",
-                "terminate",
-                expr(f"steps[-1].step == '{RAGRoute.TERMINATE}'"),
-            ),
+            ("get_query", "terminate", expr(f"steps[-1].step == '{RAGRoute.TERMINATE}'")),
             ("get_query", "search_web", expr(f"steps[-1].step == '{RAGRoute.WEB}'")),
-            (
-                "get_query",
-                "followup_or_not",
-                expr(f"steps[-1].step == '{RAGRoute.FOLLOWUP_OR_NOT}'"),
-            ),
+            ("get_query", "followup_or_not", expr(f"steps[-1].step == '{RAGRoute.FOLLOWUP_OR_NOT}'")),
             ("get_query", "router", expr(f"steps[-1].step == '{RAGRoute.ROUTER}'")),
             (
                 ["get_query", "followup_or_not", "router", "web_or_not"],
@@ -115,18 +92,10 @@ def application(
             ),
             ("followup_or_not", "router"),
             # ("router", "ask_assistant", expr(f"steps[-1].step == '{RAGRoute.MENU}'")),
-            (
-                "router",
-                "web_or_not",
-                expr(f"steps[-1].step == '{RAGRoute.WEB_OR_NOT}'"),
-            ),
+            ("router", "web_or_not", expr(f"steps[-1].step == '{RAGRoute.WEB_OR_NOT}'")),
             ("router", "create_step_back_questions"),
             ("web_or_not", "search_web"),
-            (
-                ["search_web", "search_lancedb"],
-                "ask_assistant",
-                expr("len(search_results) == 0"),
-            ),
+            (["search_web", "search_lancedb"], "ask_assistant", expr("len(search_results) == 0")),
             ("create_step_back_questions", "search_lancedb"),
             (["search_web", "search_lancedb"], "create_search_response"),
             *action_loop(
@@ -168,21 +137,13 @@ def application(
         )
     )
     app = builder.build()
-    app.visualize(
-        output_file_path="statemachine",
-        include_conditions=include_conditions_in_vis,
-        format="png",
-    )
+    app.visualize(output_file_path="statemachine", include_conditions=include_conditions_in_vis, format="png")
     return app
 
 
 def run_app(app: Application, queries: str | list[str]) -> Application:
     if isinstance(queries, str):
-        queries = (
-            Path(queries).read_text().splitlines()
-            if queries.endswith(".txt")
-            else [queries]
-        )
+        queries = Path(queries).read_text().splitlines() if queries.endswith(".txt") else [queries]
     for query in queries:
         inputs = {"query": query}
         logger.info(f"\nProcessing query: {query}")
