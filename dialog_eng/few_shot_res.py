@@ -7,4 +7,3 @@ response = {
         "key_features": ["AI capabilities", "powerful zoom camera"],
     },
 }
-

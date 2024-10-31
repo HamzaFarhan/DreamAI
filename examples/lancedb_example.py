@@ -11,7 +11,9 @@ lance_db = lancedb.connect("example_rag")
 file = "loan1.pdf"
 table_name = "loan_table"
 
-md_data = data_to_md(data=file, chunk_size=800, chunk_overlap=200, min_chunk_size=100)[0]
+md_data = data_to_md(data=file, chunk_size=800, chunk_overlap=200, min_chunk_size=100)[
+    0
+]
 table = add_to_lance_table(
     db=lance_db,
     table_name=table_name,

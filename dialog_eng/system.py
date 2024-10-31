@@ -7,5 +7,3 @@ Extract structured details about gadgets in this format:
   "key_features": []
 }
 """
-
-

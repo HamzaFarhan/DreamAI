@@ -69,9 +69,7 @@ messages = [
 
 
 messages = [
-    
     # previous messages
-    
     {
         "role": "user",
         "content": "Got these amazing AirPods Pro 2 yesterday, the noise canceling and spatial audio are fantastic!",
@@ -103,5 +101,3 @@ messages = [
         "content": "Just got the new Samsung S24 Ultra, the AI features are mind-blowing and the zoom on the camera is insane!",
     },
 ]
-
-

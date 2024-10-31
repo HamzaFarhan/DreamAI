@@ -27,7 +27,9 @@ def get_user_query() -> str:
 def ask_ai(dialog: Dialog, user: str, model: ModelName = MODEL) -> str:
     creator, kwargs = dialog.creator_with_kwargs(model=model, user=user)
     res = creator.create(response_model=str, **kwargs)
-    dialog.add_messages(messages=[user_message(content=user), assistant_message(content=res)])
+    dialog.add_messages(
+        messages=[user_message(content=user), assistant_message(content=res)]
+    )
     return str(res)
 
 

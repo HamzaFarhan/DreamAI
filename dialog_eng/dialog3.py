@@ -9,6 +9,28 @@ Extract structured details about gadgets in this format:
 """
 
 messages = [
+    # previous messages
+    {
+        "role": "user",
+        "content": "Just got the new Samsung S24 Ultra, the AI features are mind-blowing and the zoom on the camera is insane!",
+    },
+    {
+        "role": "assistant",
+        "content": {
+            "device_type": "smartphone",
+            "brand": "Samsung",
+            "model": "S24 Ultra",
+            "key_features": ["AI features", "powerful zoom camera"],
+        },
+    },
+    {
+        "role": "user",
+        "content": "Could you also add a sentiment field to show how positive or negative the user feels about the product? Add that field moving forward",
+    },
+]
+
+
+messages = [
     {
         "role": "user",
         "content": "Just picked up the new MacBook Air M3, love how thin it is and the battery lasts forever!",

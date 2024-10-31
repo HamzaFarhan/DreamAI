@@ -11,13 +11,15 @@ Add some examples:
 
 The Anthropic API expects a system prompt and a list of messages. So these are our arguments:
 
-<few_shot.py>
+<few_shot.py system>
+<few_shot.py messages>
 
 This is what we get:
 
 <few_shot_res.py>
 
 Now how would we do this in Dialog Engineering? Instead of "Input" and "Output", just think of the few-shot examples as "user" and "assistant" messages. Because that's what they actually are. An expected user message followed by an expected LLM response.
+As we build our dialog, the system prompt will not be changed. So assume that is also being sent as the "system" argument.
 
 This is how our "dialog" looks:
 
@@ -44,7 +46,6 @@ Here you go:
 
 This is what we get:
 
-<system.py>
 <dialog3_res.py>
 
 Now what would happen going forward?
@@ -57,7 +58,7 @@ This is what we get:
 
 <dialog4_res.py>
 
-And now here are our arguments for this use case:
+And now here are our arguments for this whole use case:
 
 <system.py>
 <dialog.py>

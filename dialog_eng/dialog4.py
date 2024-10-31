@@ -93,3 +93,25 @@ messages = [
         "content": "Just checked out the iPad Mini 7 but I'm really disappointed. The jelly scroll issue hasn't been fixed and there's barely any meaningful upgrades. No need to upgrade.",
     },
 ]
+
+messages = [
+    # previous messages
+    {
+        "role": "user",
+        "content": "Could you also add a sentiment field to show how positive or negative the user feels about the product? Add that field moving forward",
+    },
+    {
+        "role": "assistant",
+        "content": {
+            "device_type": "smartphone",
+            "brand": "Samsung",
+            "model": "S24 Ultra",
+            "key_features": ["AI features", "powerful zoom camera"],
+            "sentiment": "very positive",
+        },
+    },
+    {
+        "role": "user",
+        "content": "Just checked out the iPad Mini 7 but I'm really disappointed. The jelly scroll issue hasn't been fixed and there's barely any meaningful upgrades. No need to upgrade.",
+    },
+]

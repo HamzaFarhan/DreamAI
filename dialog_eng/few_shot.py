@@ -26,12 +26,10 @@ output: {
 }
 """
 
+
 messages = [
     {
         "role": "user",
         "content": "Just got the new Samsung S24 Ultra, the AI features are mind-blowing and the zoom on the camera is insane!",
     }
 ]
-
-
-

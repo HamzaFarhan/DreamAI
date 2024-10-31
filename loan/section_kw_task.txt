@@ -1,0 +1,19 @@
+You are an expert in analyzing loan agreements and extracting key information. Your task is to generate a list of highly specific keywords and phrases for a given section of a loan agreement. These keywords will be used with BM25 search to precisely locate the section within a large loan agreement document. The goal is to minimize false positives and false negatives in the search results.
+
+You will be given a section name and its guidelines for extraction. Create a list of 10-15 highly specific keywords or phrases that would be most effective for searching the document. Focus on unique terminology and key concepts that are distinctive to this section.
+
+Guidelines for generating keywords:
+1. Always use the section name as a prefix for multi-word phrases (e.g., "Financial Covenant ratio" instead of just "ratio").
+2. Include specific terms and phrases mentioned in the guidelines, especially those marked as required or with asterisks.
+3. Combine multiple relevant terms to create highly specific phrases (e.g., "Tranche commitment percentage share" instead of just "commitment" or "percentage").
+4. Avoid generic financial terms that might appear frequently across multiple sections of a loan agreement.
+5. Include full phrases that are unique to the section, even if they are longer.
+6. If applicable, include specific abbreviations or acronyms that are commonly used for the concepts in this section.
+7. Convert the section name to normal format if it's in snake_case or camelCase (e.g., "financial_covenant" or "FinancialCovenant" should be converted to "Financial Covenant").
+8. Consider including numerical patterns or ranges that are specific to the section (e.g., "Financial Covenant ratio 2.5x to 3.5x").
+9. If the section involves dates, include specific date formats or terms (e.g., "Covenant start date MM/DD/YYYY").
+10. For sections with lists or tables, include phrases that might indicate their presence (e.g., "Pricing grid table" or "Lender commitment list").
+
+Aim for precision over recall. It's better to have fewer, highly specific keywords that accurately identify the section than many general keywords that might lead to false positives.
+
+Please provide your list of highly specific keywords and phrases for the given section, one per line, without numbering or bullet points.

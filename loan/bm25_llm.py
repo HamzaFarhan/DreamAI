@@ -18,9 +18,41 @@ from dreamai.utils import insert_xml_tag
 MIN_INDEX_GAP = 5
 MAX_NUM_INDEXES = 15
 MIN_CHUNK_SIZE = 600
+ATTEMPTS = 6
 
-guidelines_file = "guidelines.json"
-all_guidelines = json.loads(Path(guidelines_file).read_text())
+
+def get_md_file(doc_file: str | Path) -> Path:
+    return Path(doc_file).with_suffix(".md")
+
+
+def get_chunks_file(doc_file: str | Path) -> Path:
+    doc_file = Path(doc_file)
+    return doc_file.with_name(doc_file.stem + "_chunks.json")
+
+
+def get_bm25_file(doc_file: str | Path) -> Path:
+    doc_file = Path(doc_file)
+    return doc_file.with_name(doc_file.stem + "_bm25.json")
+
+
+def get_section_llm_file(doc_file: str | Path, section_name: str) -> Path:
+    doc_file = Path(doc_file)
+    return doc_file.with_name(doc_file.stem + f"_{section_name}_llm.json")
+
+
+def get_section_indexes_file(doc_file: str | Path, section_name: str) -> Path:
+    doc_file = Path(doc_file)
+    return doc_file.with_name(doc_file.stem + f"_{section_name}_indexes.json")
+
+
+def get_section_html_file(doc_file: str | Path, section_name: str) -> Path:
+    doc_file = Path(doc_file)
+    return doc_file.with_name(doc_file.stem + f"_{section_name}.html")
+
+
+def get_keywords_file(guidelines_file: str | Path) -> Path:
+    guidelines_file = Path(guidelines_file)
+    return guidelines_file.with_stem(guidelines_file.stem + "_keywords")
 
 
 class SectionIndexes(BaseModel):
@@ -33,12 +65,8 @@ class SectionIndexes(BaseModel):
 
         if len(indexes) == 0:
             return []
-        min_index_gap = (
-            info.context.get("min_index_gap", MIN_INDEX_GAP) if info.context else MIN_INDEX_GAP
-        )
-        context_indexes = set(
-            info.context.get("indexes", indexes) if info.context else indexes
-        )
+        min_index_gap = info.context.get("min_index_gap", MIN_INDEX_GAP) if info.context else MIN_INDEX_GAP
+        context_indexes = set(info.context.get("indexes", indexes) if info.context else indexes)
         sorted_indexes = sorted(set(indexes) & context_indexes)
         filled_indexes = []
         for i, current in enumerate(sorted_indexes):
@@ -60,7 +88,7 @@ class SectionIndexes(BaseModel):
         return result
 
 
-class KeyWords(BaseModel):
+class Keywords(BaseModel):
     keywords: list[str] = Field(min_length=10)
 
     @field_validator("keywords")
@@ -80,9 +108,7 @@ def flatten(o: Iterable):
             yield item
 
 
-def resolve_data_path(
-    data_path: list[str | Path] | str | Path, file_extension: str | None = None
-) -> chain:
+def resolve_data_path(data_path: list[str | Path] | str | Path, file_extension: str | None = None) -> chain:
     if not isinstance(data_path, list):
         data_path = [data_path]
     paths = []
@@ -162,89 +188,134 @@ def chunk_md(
     return final_chunks
 
 
-def chunk_doc(doc_file: str | Path):
+def chunk_doc(doc_file: str | Path, overwrite: bool = False):
     doc_file = Path(doc_file)
-    doc_name = doc_file.stem
-    md_path = Path(f"{doc_name}_md.json")
-    chunks_path = Path(f"{doc_name}_chunks.json")
-    if md_path.exists() and chunks_path.exists():
-        return
-    md = docs_to_md(docs=doc_file)[0]
-    chunks = chunk_md(md=md)
+    md_file = get_md_file(doc_file=doc_file)
+    chunks_file = get_chunks_file(doc_file=doc_file)
+    if md_file.exists():
+        md = md_file.read_text()
+    else:
+        md = docs_to_md(docs=doc_file)[0]
+        md_file.write_text(md)
+    should_create_chunks = not chunks_file.exists() or (chunks_file.exists() and overwrite)
+    if should_create_chunks:
+        chunks = chunk_md(md=md)
+        chunks_file.write_text(json.dumps(chunks))
+        if overwrite:
+            logger.warning(f"Overwriting existing chunks file: {chunks_file.name}")
+    else:
+        logger.warning(f"{chunks_file.name} already exists and overwrite is False")
+        chunks = json.loads(chunks_file.read_text())
     lens = [len(chunk["text"]) for chunk in chunks.values()]
     logger.info(f"Length of markdown: {len(md)}")
     logger.info(f"Number of chunks: {len(chunks)}")
     logger.info(f"Maximum chunk length: {max(lens)}")
     logger.info(f"Minimum chunk length: {min(lens)}")
     logger.info(f"Average chunk length: {np.mean(lens):.2f}")
-    Path(md_path).write_text(json.dumps(md))
-    chunks_path.write_text(json.dumps(chunks))
 
 
-def find_section(doc_name: str, section_guidelines: dict, model: ModelName) -> str:
-    section_name = list(section_guidelines.keys())[0]
+def find_section(
+    doc_file: str | Path,
+    guidelines_file: str | Path,
+    section_name: str,
+    model: ModelName,
+    kg_file: str | Path | None = None,
+):
+    doc_file = Path(doc_file)
+    chunks_file = get_chunks_file(doc_file=doc_file)
+    if not chunks_file.exists():
+        chunk_doc(doc_file=doc_file)
+    chunks = {int(k): v for k, v in json.loads(chunks_file.read_text()).items()}
+    guidelines = json.loads(Path(guidelines_file).read_text())
+    section_guidelines = {section_name: guidelines[section_name]}
     logger.info(f"Finding Section: {section_name}")
-    chunks = json.loads(Path(f"{doc_name}_chunks.json").read_text())
-    dialog = Dialog(
-        task="find_section_task.txt",
-        chat_history=[user_message(content=f"<chunks>\n{json.dumps(chunks)}\n</chunks>")],
-    )
+    chat_history = [user_message(content=f"<chunks>\n{json.dumps(chunks)}\n</chunks>")]
+    if kg_file:
+        kg_rels = json.loads(Path(kg_file).read_text())[section_name]
+        chat_history.append(
+            user_message(content=f"<kg_relationships>\n{json.dumps(kg_rels)}\n</kg_relationships>")
+        )
+    dialog = Dialog(task="find_section_task.txt", chat_history=chat_history)
     creator = create_creator(model=model)
-    kwargs = dialog.gemini_kwargs(user=json.dumps(section_guidelines))
+    kwargs = dialog.gemini_kwargs(
+        user=f"<section_guidelines>\n{json.dumps(section_guidelines)}\n</section_guidelines>"
+    )
     logger.info(kwargs["messages"][-1]["content"][-100:])
-    indexes = creator.create(response_model=list[int], max_retries=5, **kwargs)
-    # indexes = SectionIndexes.model_validate(
-    #     {"indexes": indexes},
-    #     context={"indexes": [int(key) for key in chunks.keys()]},
-    # ).indexes
+    try:
+        indexes = creator.create(response_model=list[int], max_retries=ATTEMPTS, **kwargs)
+    except Exception:
+        indexes = list(range(135, 165))
+    indexes = SectionIndexes.model_validate(
+        {"indexes": indexes},  # type:ignore
+        context={"indexes": list(chunks.keys())},
+    ).indexes
     logger.success(f"Found: {len(indexes)} chunks")  # type:ignore
-    res_path = f"found_{section_name}.json"
-    Path(res_path).write_text(json.dumps(indexes))
-    return res_path
+    section_file = get_section_llm_file(doc_file=doc_file, section_name=section_name)
+    section_file.write_text(json.dumps(indexes))
 
 
-def extract_keywords(all_guidelines: dict, model: ModelName) -> str:
-    logger.info("Extracting Keywords")
+def extract_guideline_keywords(guidelines_file: str | Path, model: ModelName, overwrite: bool = False):
+    logger.info("Extracting Guideline Keywords")
+    guidelines_file = Path(guidelines_file)
+    keywords_file = get_keywords_file(guidelines_file=guidelines_file)
+    if keywords_file.exists() and not overwrite:
+        logger.warning(f"{keywords_file.name} already exists and overwrite is False")
+        return
+    keywords = {}
     creator = create_creator(model=model)
     dialog = Dialog(task="section_kw_task.txt")
-    res_path = Path("keywords.json")
-    keywords = json.loads(res_path.read_text()) if res_path.exists() else {}
-    for section_name, guidelines in all_guidelines.items():
-        if section_name in keywords:
+    for section_name, section_guidelines in (json.loads(guidelines_file.read_text())).items():
+        if section_name in keywords and not overwrite:
+            logger.warning(f"{section_name} already exists and overwrite is False")
             continue
         logger.info(f"Extracting Keywords for: {section_name}")
         kwargs = dialog.gemini_kwargs(
-            user=f"<section_name>\n{section_name}\n</section_name>\n<guidelines>\n{guidelines}\n</guidelines>"
+            user=f"<section_name>\n{section_name}\n</section_name>\n<guidelines>\n{section_guidelines}\n</guidelines>"
         )
-        keywords[section_name] = creator.create(response_model=KeyWords, **kwargs).keywords  # type:ignore
-        res_path.write_text(json.dumps(keywords))
+        keywords[section_name] = creator.create(response_model=Keywords, **kwargs).keywords  # type:ignore
+        keywords_file.write_text(json.dumps(keywords))
     logger.success("Extracted Keywords")
-    return str(res_path)
 
 
-def bm25_search(doc_name: str, section_name: str, k: int = 5) -> str:
-    logger.info(f"Running BM25 for: {section_name}")
-    chunks = json.loads(Path(f"{doc_name}_chunks.json").read_text())
+def bm25_search(doc_file: str | Path, guidelines_file: str | Path, k: int = 5, overwrite: bool = False):
+    logger.info("Running BM25 Search")
+    guidelines_file = Path(guidelines_file)
+    keywords_file = get_keywords_file(guidelines_file=guidelines_file)
+    doc_file = Path(doc_file)
+    chunks_file = get_chunks_file(doc_file=doc_file)
+    bm25_file = get_bm25_file(doc_file=doc_file)
+    if bm25_file.exists() and not overwrite:
+        logger.warning(f"{bm25_file} already exists. Skipping BM25 search.")
+        return
+    if not chunks_file.exists():
+        chunk_doc(doc_file=doc_file)
+    chunks = json.loads(chunks_file.read_text())
     corpus = [chunks[str(i)]["text"] for i in range(len(chunks))]
-    queries = json.loads(Path("keywords.json").read_text())[section_name]
-    # stemmer = Stemmer.Stemmer("english")
-    stemmer = None
-    corpus_tokens = bm25s.tokenize(corpus, stemmer=stemmer)  # type:ignore
-    retriever = bm25s.BM25()
-    retriever.index(corpus_tokens)
-    query_tokens = bm25s.tokenize(queries, stemmer=stemmer)  # type:ignore
-    res = retriever.retrieve(query_tokens, k=k, return_as="documents")
-    res_path = f"{section_name}_bm25_results.json"
-    Path(res_path).write_text(json.dumps(res.tolist()))  # type:ignore
-    logger.success(f"BM25 Results:\n{res}")
-    return res_path
+    keywords = json.loads(keywords_file.read_text())
+    bm25_results = json.loads(bm25_file.read_text()) if bm25_file.exists() else {}
+    for section_name, queries in keywords.items():
+        if section_name in bm25_results and not overwrite:
+            logger.warning(f"{section_name} already has BM25 results. Skipping.")
+            continue
+        logger.info(f"Running BM25 for section: {section_name}")
+        # stemmer = Stemmer.Stemmer("english")
+        stemmer = None
+        corpus_tokens = bm25s.tokenize(corpus, stemmer=stemmer)  # type:ignore
+        retriever = bm25s.BM25()
+        retriever.index(corpus_tokens)
+        query_tokens = bm25s.tokenize(queries, stemmer=stemmer)  # type:ignore
+        res = retriever.retrieve(query_tokens, k=k, return_as="documents")
+        bm25_results[section_name] = res.tolist()  # type:ignore
+        bm25_file.write_text(json.dumps(bm25_results))
+    logger.success(f"BM25 Results saved to: {bm25_file}")
 
 
-def combine_results(doc_name: str, section_name: str) -> str:
-    chunks = json.loads(Path(f"{doc_name}_chunks.json").read_text())
-    found_section = json.loads(Path(f"found_{section_name}.json").read_text())
-    bm25_results = json.loads(Path(f"{section_name}_bm25_results.json").read_text())
-    section_indexes = np.unique(np.concatenate([np.unique(bm25_results), found_section]))
+def combine_results(doc_file: str | Path, section_name: str):
+    doc_file = Path(doc_file)
+    chunks = json.loads(get_chunks_file(doc_file=doc_file).read_text())
+    section_llm = json.loads(get_section_llm_file(doc_file=doc_file, section_name=section_name).read_text())
+    bm25_results = np.array(json.loads(get_bm25_file(doc_file=doc_file).read_text())[section_name])
+    section_indexes = np.unique(np.concatenate([bm25_results.ravel(), section_llm]))
     section_indexes = SectionIndexes.model_validate(
         {"indexes": section_indexes},
         context={"indexes": [int(key) for key in chunks.keys()]},
@@ -253,47 +324,53 @@ def combine_results(doc_name: str, section_name: str) -> str:
     logger.info((len(bm25_results), np.array(bm25_results).shape))
     logger.info((len(section_indexes), len(chunks)))
     logger.info(section_indexes)
-    res_path = f"{section_name}_indexes.json"
-    Path(res_path).write_text(json.dumps(section_indexes))
-    return res_path
+    get_section_indexes_file(doc_file=doc_file, section_name=section_name).write_text(json.dumps(section_indexes))
 
 
-def highlight_doc(doc_name: str, section_name: str) -> str:
-    md = Path(f"{doc_name}_md.json").read_text()
-    chunks = json.loads(Path(f"{doc_name}_chunks.json").read_text())
-    indexes = json.loads(Path(f"{section_name}_indexes.json").read_text())
-    html_path = Path(f"{section_name}.html")
+def highlight_doc(doc_file: str | Path, section_name: str, overwrite: bool = True):
+    doc_file = Path(doc_file)
+    md = get_md_file(doc_file=doc_file).read_text()
+    chunks = json.loads(get_chunks_file(doc_file=doc_file).read_text())
+    indexes = json.loads(get_section_indexes_file(doc_file=doc_file, section_name=section_name).read_text())
+    html_path = get_section_html_file(doc_file=doc_file, section_name=section_name)
+    if not overwrite:
+        logger.warning(f"{html_path.name} already exists and overwrite is False")
+        return
     html_path.unlink(missing_ok=True)
     for index in indexes:
         # logger.info(f"start: {chunks[str(index)]['start']}, end: {chunks[str(index)]['end']}")
-        md = (
-            insert_xml_tag(
-                text=md,
-                tag="mark",
-                start=chunks[str(index)]["start"],
-                end=chunks[str(index)]["end"],
-            )
-            .replace("\\n", "<br>")
-            .replace("\\u201c", '"')
-            .replace("\\u201d", '"')
+        md = re.sub(
+            r"\n",
+            "<br>",
+            re.sub(
+                r"\u201d",
+                '"',
+                re.sub(
+                    r"\u201c",
+                    '"',
+                    insert_xml_tag(
+                        text=md, tag="mark", start=chunks[str(index)]["start"], end=chunks[str(index)]["end"]
+                    ),
+                ),
+            ),
         )
         html_path.write_text(f'<center style="font-size: 18px;">{md}</center>')
     logger.success(f"Highlighted Document for: {section_name}")
-    return str(html_path)
 
 
 if __name__ == "__main__":
-    doc_file = "hp.md"
-    doc_name = Path(doc_file).stem
-    section_name = "deal_general_information"
-    extract_keywords(all_guidelines=all_guidelines, model=ModelName.GEMINI_FLASH)
+    guidelines_file = Path("guidelines.json")
+    doc_file = Path("data/hp.md")
+    section_name = "financial_covenants"
+    extract_guideline_keywords(guidelines_file=guidelines_file, model=ModelName.GEMINI_FLASH)
     chunk_doc(doc_file=doc_file)
-    section_guidelines = {section_name: all_guidelines[section_name]}
-    found_section_file = find_section(
-        doc_name=doc_name,
-        section_guidelines=section_guidelines,
+    bm25_search(doc_file=doc_file, guidelines_file=guidelines_file)
+    find_section(
+        doc_file=doc_file,
+        guidelines_file=guidelines_file,
+        section_name=section_name,
         model=ModelName.GEMINI_FLASH,
+        kg_file="hp_res.json",
     )
-    bm25_results_file = bm25_search(doc_name=doc_name, section_name=section_name)
-    section_indexes_file = combine_results(doc_name=doc_name, section_name=section_name)
-    html_path = highlight_doc(doc_name=doc_name, section_name=section_name)
+    combine_results(doc_file=doc_file, section_name=section_name)
+    highlight_doc(doc_file=doc_file, section_name=section_name)

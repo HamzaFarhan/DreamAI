@@ -9,6 +9,25 @@ Extract structured details about gadgets in this format:
 """
 
 messages = [
+    #  ALL previous messages
+    {
+        "role": "user",
+        "content": "Just checked out the iPad Mini 7 but I'm really disappointed. The jelly scroll issue hasn't been fixed and there's barely any meaningful upgrades. No need to upgrade.",
+    },
+    {
+        "role": "assistant",
+        "content": {
+            "device_type": "tablet",
+            "brand": "Apple",
+            "model": "iPad Mini 7",
+            "key_features": ["jelly scroll issue persists", "minimal upgrades"],
+            "sentiment": "negative",
+        },
+    },
+]
+
+
+messages = [
     {
         "role": "user",
         "content": "Just picked up the new MacBook Air M3, love how thin it is and the battery lasts forever!",
