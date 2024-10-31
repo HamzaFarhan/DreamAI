@@ -92,10 +92,7 @@ class Example(BaseModel):
 
     @property
     def messages(self) -> list[MessageType]:
-        return [
-            user_message(content=self.user),
-            assistant_message(content=self.assistant),
-        ]
+        return [user_message(content=self.user), assistant_message(content=self.assistant)]
 
     @classmethod
     def from_messages(cls, messages: list[MessageType]) -> Self:
@@ -237,11 +234,7 @@ class Dialog(BaseModel):
         return messages
 
     def _add_user_query(
-        self,
-        messages: list[MessageType],
-        user: str = "",
-        template_data: dict | None = None,
-        merge: bool = True,
+        self, messages: list[MessageType], user: str = "", template_data: dict | None = None, merge: bool = True
     ) -> list[MessageType]:
         user = "" if template_data is not None else user
         if user:
@@ -279,10 +272,7 @@ class Dialog(BaseModel):
             "model": model,
             "messages": self.get_shorter_messages(
                 messages=self._add_user_query(
-                    messages=self.messages,
-                    user=user,
-                    template_data=template_data,
-                    merge=False,
+                    messages=self.messages, user=user, template_data=template_data, merge=False
                 ),
                 chat_history_limit=chat_history_limit,
             ),
@@ -304,10 +294,7 @@ class Dialog(BaseModel):
         return {"model": model, "system": str(self.task), "messages": messages}
 
     def gemini_kwargs(
-        self,
-        user: str = "",
-        template_data: dict | None = None,
-        chat_history_limit: int = CHAT_HISTORY_LIMIT,
+        self, user: str = "", template_data: dict | None = None, chat_history_limit: int = CHAT_HISTORY_LIMIT
     ) -> dict[str, Any]:
         return {
             "messages": self.get_shorter_messages(
@@ -328,27 +315,19 @@ class Dialog(BaseModel):
         creator_kwargs = {}
         if isinstance(creator.client, OpenAI):
             creator_kwargs = self.gpt_kwargs(
-                model=model,
-                user=user,
-                template_data=template_data,
-                chat_history_limit=chat_history_limit,
+                model=model, user=user, template_data=template_data, chat_history_limit=chat_history_limit
             )
             creator_kwargs["temperature"] = TEMPERATURE
             creator_kwargs["max_tokens"] = MAX_TOKENS
         elif isinstance(creator.client, Anthropic):
             creator_kwargs = self.claude_kwargs(
-                model=model,
-                user=user,
-                template_data=template_data,
-                chat_history_limit=chat_history_limit,
+                model=model, user=user, template_data=template_data, chat_history_limit=chat_history_limit
             )
             creator_kwargs["temperature"] = TEMPERATURE
             creator_kwargs["max_tokens"] = MAX_TOKENS
         elif isinstance(creator.client, GenerativeModel):
             creator_kwargs = self.gemini_kwargs(
-                user=user,
-                template_data=template_data,
-                chat_history_limit=chat_history_limit,
+                user=user, template_data=template_data, chat_history_limit=chat_history_limit
             )
             creator_kwargs["generation_config"] = {
                 "temperature": TEMPERATURE,

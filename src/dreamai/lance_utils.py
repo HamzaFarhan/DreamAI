@@ -90,7 +90,6 @@ def search_lancedb(
         .sort_values("_relevance_score", ascending=False)
         .reset_index(drop=True)[:max_search_results]
     )
-
     return [
         {k: v for k, v in d.items() if k != "vector"}
         for d in results.to_dict(orient="records")  # type:ignore

@@ -121,10 +121,7 @@ def followup_or_not(state: State) -> tuple[dict[str, StepWithConfidence], State]
         followup = _query_to_response(
             query=state["query"],
             model=state["model"],
-            dialog=Dialog(
-                task=str(Path(DIALOGS_FOLDER) / "followup_or_not_task.txt"),
-                chat_history=chat_history,
-            ),
+            dialog=Dialog(task=str(Path(DIALOGS_FOLDER) / "followup_or_not_task.txt"), chat_history=chat_history),
             response_model=bool,  # type: ignore
         )
     except Exception:

@@ -22,9 +22,7 @@ DIALOGS_FOLDER = dialog_settings.dialogs_folder
 @action(reads=["query"], writes=["search_results", "bad_interaction"])
 def search_web(state: State) -> tuple[dict[str, list[dict] | BadExample | None], State]:
     try:
-        results = search_query_to_md(
-            query=state["query"], max_search_results=MAX_SEARCH_RESULTS, chunk_size=0
-        )
+        results = search_query_to_md(query=state["query"], max_search_results=MAX_SEARCH_RESULTS, chunk_size=0)
         results = [result.model_dump(exclude={"chunks"}) for result in results]
     except Exception:
         logger.exception("Error in search_web")
@@ -49,9 +47,7 @@ def create_step_back_questions(state: State) -> tuple[dict[str, list[str]], Stat
             StepBackQuestions,
             _query_to_response(
                 model=state["model"],
-                dialog=Dialog.load(
-                    path=str(Path(DIALOGS_FOLDER) / "step_back_dialog.json")
-                ),
+                dialog=Dialog.load(path=str(Path(DIALOGS_FOLDER) / "step_back_dialog.json")),
                 response_model=StepBackQuestions,
                 template_data={"question": state["query"].replace(":", "")},
                 chat_history=state.get("chat_history", None),
@@ -60,9 +56,7 @@ def create_step_back_questions(state: State) -> tuple[dict[str, list[str]], Stat
     except Exception:
         logger.exception("Error in create_step_back_questions")
         step_back_questions = []
-    return {"step_back_questions": step_back_questions}, state.update(
-        step_back_questions=step_back_questions
-    )
+    return {"step_back_questions": step_back_questions}, state.update(step_back_questions=step_back_questions)
 
 
 @action(

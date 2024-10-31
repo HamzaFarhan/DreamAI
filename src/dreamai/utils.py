@@ -45,9 +45,7 @@ UNICODE_BULLETS_RE_0W = re.compile(f"(?={BULLETS_PATTERN})(?<!{BULLETS_PATTERN})
 UNICODE_BULLETS_RE = re.compile(f"(?:{BULLETS_PATTERN})(?!{BULLETS_PATTERN})")
 E_BULLET_PATTERN = re.compile(r"^e(?=\s)", re.MULTILINE)
 PARAGRAPH_PATTERN = r"\s*\n\s*"
-PARAGRAPH_PATTERN_RE = re.compile(
-    f"((?:{BULLETS_PATTERN})|{PARAGRAPH_PATTERN})(?!{BULLETS_PATTERN}|$)",
-)
+PARAGRAPH_PATTERN_RE = re.compile(f"((?:{BULLETS_PATTERN})|{PARAGRAPH_PATTERN})(?!{BULLETS_PATTERN}|$)")
 DOUBLE_PARAGRAPH_PATTERN_RE = re.compile("(" + PARAGRAPH_PATTERN + "){2}")
 
 
@@ -209,12 +207,7 @@ def _process_content(content: str | Path | list[str]) -> str:
 
 def format_encoding_str(encoding: str) -> str:
     formatted_encoding = encoding.lower().replace("_", "-")
-    annotated_encodings = [
-        "iso-8859-6-i",
-        "iso-8859-6-e",
-        "iso-8859-8-i",
-        "iso-8859-8-e",
-    ]
+    annotated_encodings = ["iso-8859-6-i", "iso-8859-6-e", "iso-8859-8-i", "iso-8859-8-e"]
     if formatted_encoding in annotated_encodings:
         formatted_encoding = formatted_encoding[:-2]
     return formatted_encoding

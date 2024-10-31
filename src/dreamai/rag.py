@@ -36,11 +36,7 @@ def action_loop(
     return [
         (action, checker),
         (checker, updater_action, expr(condition)),
-        (
-            checker,
-            action,
-            ~expr(condition) & expr(f"action_attempts < {action_attempts_limit}"),
-        ),
+        (checker, action, ~expr(condition) & expr(f"action_attempts < {action_attempts_limit}")),
         (checker, assistant_action, ~expr(condition)),
     ]
 

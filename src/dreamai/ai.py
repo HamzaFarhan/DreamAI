@@ -34,10 +34,7 @@ def create_tool_model(func: Callable) -> Type[BaseModel]:
     for name, parameter in sig.parameters.items():
         if parameter.annotation is not inspect.Parameter.empty and name != "return":
             is_required = parameter.default == inspect.Parameter.empty
-            fields[name] = (
-                parameter.annotation,
-                ... if is_required else parameter.default,
-            )
+            fields[name] = (parameter.annotation, ... if is_required else parameter.default)
     fields["tool_name"] = (Literal[func.__name__], func.__name__)  # type: ignore
     model_name = "".join([s.title() for s in func.__name__.split("_")]) + "Tool"
     return create_model(model_name, __doc__=func.__doc__, __base__=Tool, **fields)
@@ -71,11 +68,7 @@ def create_creator(
             return instructor.from_anthropic(AsyncAnthropic())
         else:
             return instructor.from_anthropic(Anthropic())
-    elif model in [
-        ModelName.GEMINI_FLASH,
-        ModelName.GEMINI_PRO,
-        ModelName.GEMINI_FLASH_EXP,
-    ]:
+    elif model in [ModelName.GEMINI_FLASH, ModelName.GEMINI_PRO, ModelName.GEMINI_FLASH_EXP]:
         return instructor.from_gemini(
             client=GenerativeModel(model_name=model),
             mode=instructor.Mode.GEMINI_JSON,

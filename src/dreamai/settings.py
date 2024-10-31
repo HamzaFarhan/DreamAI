@@ -9,9 +9,7 @@ DEV_DIR = "/home/hamza/dev"
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file="dai_settings.env", env_file_encoding="utf-8"
-    )
+    model_config = SettingsConfigDict(env_file="dai_settings.env", env_file_encoding="utf-8")
 
 
 class CreatorSettings(Settings):
@@ -25,9 +23,7 @@ class DialogSettings(Settings):
     dialogs_folder: str = f"{DEV_DIR}/dreamai/src/dreamai/dialogs"
     default_template: str = "{}"
     default_dialog_version: float = 1.0
-    chat_history_limit: int = Field(
-        default=10, description="Send only the last N in 'messages' to the model."
-    )
+    chat_history_limit: int = Field(default=10, description="Send only the last N in 'messages' to the model.")
 
 
 class DialogModelsSettings(Settings):
@@ -35,8 +31,7 @@ class DialogModelsSettings(Settings):
     max_step_back_questions: int = Field(default=3, title="For StepBackQuestions")
     max_response_sentences: int = Field(default=10, title="For SourcedResponse")
     max_non_sourced_factor: float = Field(
-        default=0.5,
-        description="The maximum percentage of the sentences that can be non-sourced.",
+        default=0.5, description="The maximum percentage of the sentences that can be non-sourced."
     )
     max_thoughts: int = Field(default=6, title="For ThoughtProcess")
 

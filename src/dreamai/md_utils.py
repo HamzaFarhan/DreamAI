@@ -82,10 +82,7 @@ class MarkdownData(BaseModel):
 
 
 def is_url(text: str) -> bool:
-    return (
-        re.match(r"^https?:\/\/[\da-z\.-]+\.[a-z]{2,}([\/\w \.-]*)*\/?$", text)
-        is not None
-    )
+    return re.match(r"^https?:\/\/[\da-z\.-]+\.[a-z]{2,}([\/\w \.-]*)*\/?$", text) is not None
 
 
 def extract_text_from_image(image_path: str, min_len: int = 2) -> str:
@@ -112,23 +109,15 @@ def remove_links_from_md(md: str) -> str:
 
 
 def remove_sponsor_related_words(text: str) -> str:
-    sponsor_patterns = [
-        r"\bsponsor(s|ed|ing)?\b",
-        r"\bsponsorship(s)?\b",
-        r"\badvertis(e|ing|ement)(s)?\b",
-    ]
+    sponsor_patterns = [r"\bsponsor(s|ed|ing)?\b", r"\bsponsorship(s)?\b", r"\badvertis(e|ing|ement)(s)?\b"]
     for pattern in sponsor_patterns:
         text = re.sub(pattern, "", text, flags=re.IGNORECASE)
     return text
 
 
 def clean_web_content(content: str, min_length: int = 3) -> str:
-    cleaned_content = remove_sponsor_related_words(
-        text=remove_links_from_md(md=content)
-    )
-    return "\n".join(
-        [line for line in cleaned_content.split("\n") if len(line.strip()) > min_length]
-    )
+    cleaned_content = remove_sponsor_related_words(text=remove_links_from_md(md=content))
+    return "\n".join([line for line in cleaned_content.split("\n") if len(line.strip()) > min_length])
 
 
 def web_search(query: str, max_search_results: int = MAX_SEARCH_RESULTS) -> list[dict]:
@@ -161,15 +150,11 @@ def url_body_to_md(body: str, extractor: str = "h2t") -> str:
     def _f(m):
         return f"```\n{dedent(m.group(1))}\n```"
 
-    return re.sub(
-        r"\[code]\s*\n(.*?)\n\[/code]", _f, res or "", flags=re.DOTALL
-    ).strip()
+    return re.sub(r"\[code]\s*\n(.*?)\n\[/code]", _f, res or "", flags=re.DOTALL).strip()
 
 
 def dict_to_md(
-    content_dict: dict[str, str | Path | list[str]] | None = None,
-    prefix: str = "",
-    suffix: str = "",
+    content_dict: dict[str, str | Path | list[str]] | None = None, prefix: str = "", suffix: str = ""
 ) -> str:
     content_dict = content_dict or {}
     prompt = deindent(prefix).strip()
@@ -218,9 +203,7 @@ def urls_to_md(
         urls = [urls]
     urls_md = []
     for url in urls:
-        md = url_body_to_md(
-            body=get_url_body(url, headers=headers), extractor=extractor
-        )
+        md = url_body_to_md(body=get_url_body(url, headers=headers), extractor=extractor)
         md = clean_web_content(content=md) if clean_content else md
         urls_md.append(
             MarkdownData.model_validate(
@@ -257,17 +240,12 @@ def search_query_to_md(
     mds = []
     for search_result in search_results:
         md = urls_to_md(
-            urls=search_result["href"],
-            extractor=extractor,
-            clean_content=clean_content,
-            **to_md_kwargs,
+            urls=search_result["href"], extractor=extractor, clean_content=clean_content, **to_md_kwargs
         ) or [
             MarkdownData.model_validate(
                 {
                     "name": search_result["href"],
-                    "markdown": "\n".join(
-                        [search_result["title"], search_result["body"]]
-                    ),
+                    "markdown": "\n".join([search_result["title"], search_result["body"]]),
                     "chunk_metadata": chunk_metadata or {},
                 },
                 context=to_md_kwargs,
@@ -354,11 +332,7 @@ def data_to_md(
         search_queries = [search_queries]
     for search_query in search_queries:
         data_md.extend(
-            search_query_to_md(
-                query=search_query,
-                max_search_results=max_search_results,
-                **to_md_kwargs,
-            )
+            search_query_to_md(query=search_query, max_search_results=max_search_results, **to_md_kwargs)
         )
     if not isinstance(data, list):
         data = [data]
