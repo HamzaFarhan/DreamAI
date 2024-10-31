@@ -1,0 +1,29 @@
+<claim>
+   <carrier-code> The standard code identifying the payer (eg MC051 is Medi-Cal) </carrier-code>
+   <state> The standard 2-character state abbreviation code (eg. VT for Vermont) </state>
+   <practice> Any identifier you care to send that uniquely identifies the practice </practice>
+   <provider> The provider's NPI number </provider>
+   <default-place-of-service> A 2-character place of service code </default-place-of-service>
+   <date-of-service> The date of service in yyyy-mm-dd format </date-of-service>
+   <patient>
+      <medical-record-number> Any identifier you care to send that uniquely identifies a particular patient </medical-record-number>
+      <birth> The patient's birthdate in yyyy-mm-dd format </birth>
+      <gender> Patient's gender (M for male, F for female) </gender>
+   </patient>
+   <procedure-list>
+      <procedure>
+         <procedure-code> A CPT or HCPCS code </procedure-code>
+         <from-date> The starting date on which the procedure was performed. This field is optional if it's value is the same as the date-of-service </from-date>
+         <to-date> The ending date on which the procedure was performed. This field is optional if it's value is the same as the date-of-service </to-date>
+         <modifier-list>
+            <modifier-code> A 2-character modifier code </modifier-code>
+         </modifier-list>
+         <diagnosis-list>
+            <diagnosis-code> An ICD-9-CM or ICD-10-CM code <diagnosis-code>
+         </diagnosis-list>
+         <place-of-service> A 2-character place of service overriding the default-place-of-service </place-of-service>
+         <units> Number of procedure units </units>
+         <unitstime> Number of minutes spent doing the procedure (optional) ; </units>
+      </procedure>
+   </procedure-list>
+</claim>

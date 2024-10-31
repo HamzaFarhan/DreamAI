@@ -1,0 +1,127 @@
+<h1 id="automated-medical-coding-an-ai-powered-approach">Automated
+Medical Coding: An AI-Powered Approach</h1>
+<h2 id="our-approach">Our Approach</h2>
+<h3 id="vector-database-for-large-code-sets">1. Vector Database for
+Large Code Sets</h3>
+<p>One of the primary challenges in medical coding is dealing with
+extensive code sets. We had 74,209 ICD codes and 11,241 CPT codes, which
+together amount to approximately 2.5 million tokens when loaded into a
+single prompt. This far exceeds even the most advanced LLMs’ context
+windows, including Gemini Pro’s 2 million token capacity. Not only would
+this overwhelm the model’s processing capabilities, but it’s simply not
+possible to input such a large amount of data in a single prompt. To
+address this, we employ a vector database (LanceDB) that supports hybrid
+search, combining full text search and semantic similarity.</p>
+<p>For modifiers, however, we don’t use LanceDB. There are only 426
+modifiers, which is a manageable number that can easily fit within the
+LLM’s context window. This allows us to include the full set of
+modifiers directly in our LLM call, eliminating the need for an
+additional database query step and potentially improving processing
+speed for this particular code set.</p>
+<p><strong>Justification:</strong> This approach allows us to
+efficiently search and retrieve relevant codes without overwhelming the
+LLM or compromising on performance, while also optimizing the handling
+of the smaller modifier set. By using a vector database, we can work
+with our extensive code sets in a way that’s both computationally
+feasible and effective for accurate code selection.</p>
+<h3 id="keyword-extraction-from-patient-charts">2. Keyword Extraction
+from Patient Charts</h3>
+<p>To enhance the search process, we use an LLM to extract keywords and
+phrases from patient charts. This step helps in focusing the search on
+the most relevant information.</p>
+<p><strong>Justification:</strong> Extracted keywords provide a more
+targeted input for the vector database search, improving the relevance
+of retrieved codes. Compared to sending the chart content as-is, this
+approach offers several advantages:</p>
+<ol type="1">
+<li><p><strong>Noise Reduction:</strong> Patient charts often contain
+extraneous information. Keyword extraction filters out this noise,
+focusing on the most pertinent medical terms and conditions.</p></li>
+<li><p><strong>Improved Search Efficiency:</strong> By using targeted
+keywords, we can perform more precise searches in our vector database,
+potentially reducing the number of irrelevant codes retrieved.</p></li>
+<li><p><strong>Contextual Understanding:</strong> LLMs can extract not
+just individual words but also meaningful phrases, capturing the context
+that might be missed in a simple word-matching approach.</p></li>
+<li><p><strong>Standardization:</strong> Different doctors may use
+varying terminology. An LLM can help standardize these terms to match
+our code descriptions more closely.</p></li>
+<li><p><strong>Handling of Synonyms:</strong> LLMs can recognize and
+extract synonymous terms, improving the chances of matching with the
+correct codes even when the exact terminology in the code description
+isn’t used in the chart.</p></li>
+</ol>
+<p>While sending the chart content as-is might seem simpler, it could
+lead to less accurate code retrieval, especially for complex cases where
+the relevant information is buried within lengthy narratives. Our
+keyword extraction step strikes a balance between leveraging the full
+context of the chart and providing focused input for efficient code
+matching.</p>
+<h3 id="targeted-code-retrieval">3. Targeted Code Retrieval</h3>
+<p>Using the extracted keywords and chart content, we query the vector
+database to retrieve a shortlist of 100 ICD and 100 CPT codes. This
+shortlist is much more manageable for the LLM to process.</p>
+<p><strong>Justification:</strong> This step significantly reduces the
+number of codes the LLM needs to consider, making the process more
+efficient and accurate.</p>
+<h3 id="structured-data-extraction-with-pydantic">4. Structured Data
+Extraction with Pydantic</h3>
+<p>We use Pydantic models to define the structure of the output XML
+schema. This approach, combined with the Instructor library, forces the
+LLM to respond in a fixed schema rather than free-form text.</p>
+<p><strong>Justification:</strong> Structured output ensures consistency
+and adherence to the required XML format, reducing the need for
+post-processing and error correction.</p>
+<h3 id="final-code-assignment">5. Final Code Assignment</h3>
+<p>The LLM is provided with the chart content, shortlisted ICD and CPT
+codes, and modifier codes. It then extracts the relevant information and
+returns a structured Claim object.</p>
+<h2 id="advantages-of-our-approach">Advantages of Our Approach</h2>
+<ol type="1">
+<li><strong>Scalability:</strong> Can handle large code sets
+efficiently.</li>
+<li><strong>Accuracy:</strong> Reduces human error through AI-powered
+code selection.</li>
+<li><strong>Speed:</strong> Significantly faster than manual
+coding.</li>
+<li><strong>Consistency:</strong> Ensures uniform coding practices
+across different charts.</li>
+<li><strong>Cost-effectiveness:</strong> Reduces the need for human
+coders, lowering operational costs.</li>
+</ol>
+<h2 id="alternative-approaches-and-why-ours-is-optimal">Alternative
+Approaches and Why Ours is Optimal</h2>
+<ol type="1">
+<li><strong>Full LLM Processing:</strong> Using an LLM to process the
+entire code set would be inefficient and prone to errors due to context
+window limitations.</li>
+<li><strong>Rule-Based Systems:</strong> While potentially faster, these
+lack the flexibility to understand nuanced medical language and
+context.</li>
+<li><strong>Keyword Matching Only:</strong> This might miss important
+context and lead to inaccurate code assignments.</li>
+</ol>
+<p>Our hybrid approach combines the strengths of vector databases for
+efficient search, LLMs for understanding medical context, and structured
+data models for accurate output. This balance makes our solution optimal
+for handling the complexities of medical coding while maintaining
+efficiency and accuracy.</p>
+<h2 id="challenges-and-future-work">Challenges and Future Work</h2>
+<ul>
+<li>Limited sample data: Currently working with 3 AI-generated sample
+charts and XMLs. Real-world testing with actual patient data will be
+crucial for validation.</li>
+<li>Continuous updates: Medical codes are regularly updated. Our system
+is already built to accommodate these changes efficiently.</li>
+<li>Fine-tuning for specialties: Different and rare medical specialties
+may require specialized models or additional training data.</li>
+</ul>
+<h2 id="conclusion">Conclusion</h2>
+<p>Our AI-powered approach to medical coding offers a promising solution
+to automate and improve the accuracy of the coding process. By
+leveraging advanced technologies like vector databases and large
+language models, we can significantly reduce the time and cost
+associated with medical coding while potentially improving accuracy. As
+we move forward, real-world testing and continuous refinement will be
+key to ensuring the system’s effectiveness across various medical
+scenarios.</p>

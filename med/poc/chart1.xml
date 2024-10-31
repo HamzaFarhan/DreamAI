@@ -1,0 +1,31 @@
+<claim>
+    <carrier-code>MC051</carrier-code>
+    <state>CA</state>
+    <practice>GoodHealth Clinic</practice>
+    <provider>1234567890</provider>
+    <default-place-of-service>11</default-place-of-service>
+    <date-of-service>2024-07-20</date-of-service>
+    <patient>
+        <medical-record-number>JD12345</medical-record-number>
+        <birth>1980-03-15</birth>
+        <gender>M</gender>
+    </patient>
+    <procedure-list>
+        <procedure>
+            <procedure-code>20600</procedure-code>
+            <diagnosis-list>
+                <diagnosis-code>M24.261</diagnosis-code>
+            </diagnosis-list>
+            <modifier-list/>
+            <units>1</units>
+        </procedure>
+        <procedure>
+            <procedure-code>20550</procedure-code>
+             <diagnosis-list>
+                <diagnosis-code>M24.261</diagnosis-code>
+            </diagnosis-list>
+            <modifier-list/>
+            <units>1</units>
+        </procedure>
+    </procedure-list>
+</claim>

@@ -1,0 +1,816 @@
+I am creating  a tool that will take medical patient charts and then use AI to extract the information based on a defined XML schema. This will be called a Claim.
+
+CLAIM
+Here is a description of the claim xml structure:
+<claim>
+   <carrier-code> The standard code identifying the payer (eg MC051 is Medi-Cal) </carrier-code>
+   <state> The standard 2-character state abbreviation code (eg. VT for Vermont) </state>
+   <practice> Any identifier you care to send that uniquely identifies the practice </practice>
+   <provider> The provider's NPI number </provider>
+   <default-place-of-service> A 2-character place of service code </default-place-of-service>
+   <date-of-service> The date of service in yyyy-mm-dd format </date-of-service>
+   <patient>
+      <medical-record-number> Any identifier you care to send that uniquely identifies a particular patient </medical-record-number>
+      <birth> The patient's birthdate in yyyy-mm-dd format </birth>
+      <gender> Patient's gender (M for male, F for female) </gender>
+   </patient>
+   <procedure-list>
+      <procedure>
+         <procedure-code> A CPT or HCPCS code </procedure-code>
+         <from-date> The starting date on which the procedure was performed. This field is optional if it's value is the same as the date-of-service </from-date>
+         <to-date> The ending date on which the procedure was performed. This field is optional if it's value is the same as the date-of-service </to-date>
+         <modifier-list>
+            <modifier-code> A 2-character modifier code </modifier-code>
+         </modifier-list>
+         <diagnosis-list>
+            <diagnosis-code> An ICD-9-CM or ICD-10-CM code <diagnosis-code>
+         </diagnosis-list>
+         <place-of-service> A 2-character place of service overriding the default-place-of-service </place-of-service>
+         <units> Number of procedure units </units>
+         <unitstime> Number of minutes spent doing the procedure (optional) ; </units>
+      </procedure>
+   </procedure-list>
+</claim>
+Notes:
+The <procedure-list> element may contain one or more <procedure> elements.
+The <modifier-list> element may contain 0 to 4 modifiers. It must appear, even if it contains no child elements.
+Each element may contain an "ID" attribute with a value of your choosing. The Claim Scrubber will report the value of the ID when it issues a message. You can use it for whatever purpose you like, but it's intent is for conveniently tying the message to some element of your program's data structure.
+
+I've uploaded the possible ICD, CPT, and Modifier codes with descriptions
+Generate 3 sample medical charts for my experiments. Make the  charts so that other than the codes, everything else is explicitly stated. My AI will try to infer the ICD+CPT+Modifier codes using the code descriptions and the examination and procedure details etc, and it will extract all of the other available information as it is into the XML.
+Give me the charts as 3 separate markdown code blocks. For each chart, I also want the XML ground truth in the same schema as defined above. in its own code block.
+Each chart should have multiple codes including ICD+CPT+Modifiers. Don't make them empty.
+Make them realistic. Something a doctor would actually right.
+For the XMLs, MAKE SURE TO FOLLOW THE SCHEMA EXACTLY.
+
+MODIFIERS:
+
+[
+  { "code": "1P", "desc": "\"Reasons include: Not indicated (absence of organ/limb" },
+  {
+    "code": "22",
+    "desc": "\"Increased Procedural Services: When the work required to provide a service is substantially greater than typically required"
+  },
+  { "code": "23", "desc": "\"Unusual Anesthesia: Occasionally" },
+  {
+    "code": "24",
+    "desc": "\"Unrelated Evaluation and Management Service by the Same Physician or Other Qualified Health Care Professional During a Postoperative Period: The physician or other qualified health care professional may need to indicate that an evaluation and management service was performed during a postoperative period for a reason(s) unrelated to the original procedure. This circumstance may be reported by adding modifier 24 to the appropriate level of E/M service.\""
+  },
+  { "code": "25", "desc": "\"Significant" },
+  {
+    "code": "26",
+    "desc": "\"Professional Component: Certain procedures are a combination of a physician or other qualified health care professional component and a technical component. When the physician or other qualified health care professional component is reported separately"
+  },
+  {
+    "code": "27",
+    "desc": "\"Multiple Outpatient Hospital E/M Encounters on the Same Date: For hospital outpatient reporting purposes"
+  },
+  { "code": "2P", "desc": "\"Reasons include: Patient declined Economic" },
+  { "code": "32", "desc": "\"Mandated Services: Services related to mandated consultation and/or related services (eg" },
+  {
+    "code": "33",
+    "desc": "\"Preventive Services: When the primary purpose of the service is the delivery of an evidence based service in accordance with a US Preventive Services Task Force A or B rating in effect and other preventive services identified in preventive services mandates (legislative or regulatory)"
+  },
+  {
+    "code": "3P",
+    "desc": "\"Reasons include: Resources to perform the services not available Insurance coverage/payor-related limitations Other reasons attributable to health care delivery system\""
+  },
+  {
+    "code": "47",
+    "desc": "\"Anesthesia by Surgeon: Regional or general anesthesia provided by the surgeon may be reported by adding modifier 47 to the basic service. (This does not include local anesthesia.) Note: Modifier 47 would not be used as a modifier for the anesthesia procedures.\""
+  },
+  { "code": "50", "desc": "\"Bilateral Procedure: Unless otherwise identified in the listings" },
+  { "code": "51", "desc": "\"Multiple Procedures: When multiple procedures" },
+  {
+    "code": "52",
+    "desc": "\"Reduced Services: Under certain circumstances a service or procedure is partially reduced or eliminated at the discretion of the physician or other qualified health care professional. Under these circumstances the service provided can be identified by its usual procedure number and the addition of modifier 52"
+  },
+  { "code": "53", "desc": "\"Discontinued Procedure: Under certain circumstances" },
+  {
+    "code": "54",
+    "desc": "\"Surgical Care Only: When 1 physician or other qualified health care professional performs a surgical procedure and another provides preoperative and/or postoperative management"
+  },
+  {
+    "code": "55",
+    "desc": "\"Postoperative Management Only: When 1 physician or other qualified health care professional performed the postoperative management and another performed the surgical procedure"
+  },
+  {
+    "code": "56",
+    "desc": "\"Preoperative Management Only: When 1 physician or other qualified health care professional performed the preoperative care and evaluation and another performed the surgical procedure"
+  },
+  {
+    "code": "57",
+    "desc": "\"Decision for Surgery: An evaluation and management service that resulted in the initial decision to perform the surgery may be identified by adding modifier 57 to the appropriate level of E/M service.\""
+  },
+  {
+    "code": "58",
+    "desc": "\"Staged or Related Procedure or Service by the Same Physician or Other Qualified Health Care Professional During the Postoperative Period: It may be necessary to indicate that the performance of a procedure or service during the postoperative period was: (a) planned or anticipated (staged); (b) more extensive than the original procedure; or (c) for therapy following a surgical procedure. This circumstance may be reported by adding modifier 58 to the staged or related procedure. Note: For treatment of a problem that requires a return to the operating/procedure room (eg"
+  },
+  { "code": "59", "desc": "\"Distinct Procedural Service: Under certain circumstances" },
+  {
+    "code": "62",
+    "desc": "\"Two Surgeons: When 2 surgeons work together as primary surgeons performing distinct part(s) of a procedure"
+  },
+  {
+    "code": "63",
+    "desc": "\"Procedure Performed on Infants less than 4 kg: Procedures performed on neonates and infants up to a present body weight of 4 kg may involve significantly increased complexity and physician or other qualified health care professional work commonly associated with these patients. This circumstance may be reported by adding modifier 63 to the procedure number. Note: Unless otherwise designated"
+  },
+  { "code": "66", "desc": "\"Surgical Team: Under some circumstances" },
+  {
+    "code": "73",
+    "desc": "\"Discontinued Out-Patient Hospital/Ambulatory Surgery Center (ASC) Procedure Prior to the Administration of Anesthesia: Due to extenuating circumstances or those that threaten the well being of the patient"
+  },
+  {
+    "code": "74",
+    "desc": "\"Discontinued Out-Patient Hospital/Ambulatory Surgery Center (ASC) Procedure After Administration of Anesthesia: Due to extenuating circumstances or those that threaten the well being of the patient"
+  },
+  {
+    "code": "76",
+    "desc": "\"Repeat Procedure or Service by Same Physician or Other Qualified Health Care Professional: It may be necessary to indicate that a procedure or service was repeated by the same physician or other qualified health care professional subsequent to the original procedure or service. This circumstance may be reported by adding modifier 76 to the repeated procedure or service. Note: This modifier should not be appended to an E/M service.\""
+  },
+  {
+    "code": "77",
+    "desc": "\"Repeat Procedure by Another Physician or Other Qualified Health Care Professional: It may be necessary to indicate that a basic procedure or service was repeated by another physician or other qualified health care professional subsequent to the original procedure or service. This circumstance may be reported by adding modifier 77 to the repeated procedure or service. Note: This modifier should not be appended to an E/M service.\""
+  },
+  {
+    "code": "78",
+    "desc": "\"Unplanned Return to the Operating/Procedure Room by the Same Physician or Other Qualified Health Care Professional Following Initial Procedure for a Related Procedure During the Postoperative Period: It may be necessary to indicate that another procedure was performed during the postoperative period of the initial procedure (unplanned procedure following initial procedure). When this procedure is related to the first"
+  },
+  {
+    "code": "79",
+    "desc": "\"Unrelated Procedure or Service by the Same Physician or Other Qualified Health Care Professional During the Postoperative Period: The individual may need to indicate that the performance of a procedure or service during the postoperative period was unrelated to the original procedure. This circumstance may be reported by using modifier 79. (For repeat procedures on the same day"
+  },
+  {
+    "code": "80",
+    "desc": "\"Assistant Surgeon: Surgical assistant services may be identified by adding modifier 80 to the usual procedure number(s).\""
+  },
+  {
+    "code": "81",
+    "desc": "\"Minimum Assistant Surgeon: Minimum surgical assistant services are identified by adding modifier 81 to the usual procedure number.\""
+  },
+  {
+    "code": "82",
+    "desc": "\"Assistant Surgeon (when qualified resident surgeon not available): The unavailability of a qualified resident surgeon is a prerequisite for use of modifier 82 appended to the usual procedure code number(s).\""
+  },
+  { "code": "8P", "desc": "\"\"" },
+  {
+    "code": "90",
+    "desc": "\"Reference (Outside) Laboratory: When laboratory procedures are performed by a party other than the treating or reporting physician or other qualified health care professional"
+  },
+  { "code": "91", "desc": "\"Repeat Clinical Diagnostic Laboratory Test: In the course of treatment of the patient" },
+  {
+    "code": "92",
+    "desc": "\"Alternative Laboratory Platform Testing: When laboratory testing is being performed using a kit or transportable instrument that wholly or in part consists of a single use"
+  },
+  {
+    "code": "93",
+    "desc": "\"Synchronous telemedicine service is defined as a real-time interaction between a physician or other qualified health care professional and a patient who is located away at a distant site from the physician or other qualified health care professional. The totality of the communication of information exchanged between the physician or other qualified health care professional and the patient during the course of the synchronous telemedicine service must be of an amount and nature that is sufficient to meet the key components and/or requirements of the same service when rendered via a face-to-face interaction.\""
+  },
+  {
+    "code": "95",
+    "desc": "\"Synchronous Telemedicine Service Rendered Via a Real-Time Interactive Audio and Video Telecommunications System: Synchronous telemedicine service is defined as a real-time interaction between a physician or other qualified health care professional and a patient who is located at a distant site from the physician or other qualified health care professional. The totality of the communication of information exchanged between the physician or other qualified health care professional and the patient during the course of the synchronous telemedicine service must be of an amount and nature that would be sufficient to meet the key components and/or requirements of the same service when rendered via a face-to-face interaction. Modifier 95 may only be appended to the services listed in Appendix P. Appendix P is the list of CPT codes for services that are typically performed face-to-face"
+  },
+  {
+    "code": "96",
+    "desc": "\"Habilitative Services: When a service or procedure that may be either habilitative or rehabilitative in nature is provided for habilitative purposes"
+  },
+  {
+    "code": "97",
+    "desc": "\"Rehabilitative Services: When a service or procedure that may be either habilitative or rehabilitative in nature is provided for rehabilitative purposes"
+  },
+  {
+    "code": "99",
+    "desc": "\"Multiple Modifiers: Under certain circumstances 2 or more modifiers may be necessary to completely delineate a service. In such situations modifier 99 should be added to the basic procedure"
+  },
+  { "code": "A1", "desc": "\"Dressing for one wound \"" },
+  { "code": "A2", "desc": "\"Dressing for two wounds \"" },
+  { "code": "A3", "desc": "\"Dressing for three wounds \"" },
+  { "code": "A4", "desc": "\"Dressing for four wounds \"" },
+  { "code": "A5", "desc": "\"Dressing for five wounds \"" },
+  { "code": "A6", "desc": "\"Dressing for six wounds \"" },
+  { "code": "A7", "desc": "\"Dressing for seven wounds \"" },
+  { "code": "A8", "desc": "\"Dressing for eight wounds \"" },
+  { "code": "A9", "desc": "\"Dressing for nine or more wounds \"" },
+  { "code": "AA", "desc": "\"Anesthesia services performed personally by anesthesiologist \"" },
+  {
+    "code": "AB",
+    "desc": "\"Audiology service furnished personally by an audiologist without a physician/npp order for non-acute hearing assessment unrelated to disequilibrium"
+  },
+  { "code": "AD", "desc": "\"Medical supervision by a physician: more than four concurrent anesthesia procedures \"" },
+  { "code": "AE", "desc": "\"Registered dietician \"" },
+  { "code": "AF", "desc": "\"Specialty physician \"" },
+  { "code": "AG", "desc": "\"Primary physician \"" },
+  { "code": "AH", "desc": "\"Clinical psychologist \"" },
+  { "code": "AI", "desc": "\"Principal physician of record \"" },
+  { "code": "AJ", "desc": "\"Clinical social worker \"" },
+  { "code": "AK", "desc": "\"Non participating physician \"" },
+  { "code": "AM", "desc": "\"Physician" },
+  { "code": "AO", "desc": "\"Alternate payment method declined by provider of service \"" },
+  {
+    "code": "AP",
+    "desc": "\"Determination of refractive state was not performed in the course of diagnostic ophthalmological examination \""
+  },
+  { "code": "AQ", "desc": "\"Physician providing a service in an unlisted health professional shortage area (hpsa) \"" },
+  { "code": "AR", "desc": "\"Physician provider services in a physician scarcity area \"" },
+  { "code": "AS", "desc": "\"Physician assistant" },
+  { "code": "AT", "desc": "\"Acute treatment (this modifier should be used when reporting service 98940" },
+  { "code": "AU", "desc": "\"Item furnished in conjunction with a urological" },
+  { "code": "AV", "desc": "\"Item furnished in conjunction with a prosthetic device" },
+  { "code": "AW", "desc": "\"Item furnished in conjunction with a surgical dressing \"" },
+  { "code": "AX", "desc": "\"Item furnished in conjunction with dialysis services \"" },
+  { "code": "AY", "desc": "\"Item or service furnished to an esrd patient that is not for the treatment of esrd \"" },
+  {
+    "code": "AZ",
+    "desc": "\"Physician providing a service in a dental health professional shortage area for the purpose of an electronic health record incentive payment \""
+  },
+  { "code": "BA", "desc": "\"Item furnished in conjunction with parenteral enteral nutrition (pen) services \"" },
+  { "code": "BL", "desc": "\"Special acquisition of blood and blood products \"" },
+  { "code": "BO", "desc": "\"Orally administered nutrition" },
+  {
+    "code": "BP",
+    "desc": "\"The beneficiary has been informed of the purchase and rental options and has elected to purchase the item \""
+  },
+  {
+    "code": "BR",
+    "desc": "\"The beneficiary has been informed of the purchase and rental options and has elected to rent the item \""
+  },
+  {
+    "code": "BU",
+    "desc": "\"The beneficiary has been informed of the purchase and rental options and after 30 days has not informed the supplier of his/her decision \""
+  },
+  {
+    "code": "CA",
+    "desc": "\"Procedure payable only in the inpatient setting when performed emergently on an outpatient who expires prior to admission \""
+  },
+  {
+    "code": "CB",
+    "desc": "\"Service ordered by a renal dialysis facility (rdf) physician as part of the esrd beneficiary's dialysis benefit"
+  },
+  {
+    "code": "CC",
+    "desc": "\"Procedure code change (use 'cc' when the procedure code submitted was changed either for administrative reasons or because an incorrect code was filed) \""
+  },
+  {
+    "code": "CD",
+    "desc": "\"Amcc test has been ordered by an esrd facility or mcp physician that is part of the composite rate and is not separately billable \""
+  },
+  {
+    "code": "CE",
+    "desc": "\"Amcc test has been ordered by an esrd facility or mcp physician that is a composite rate test but is beyond the normal frequency covered under the rate and is separately reimbursable based on medical necessity \""
+  },
+  {
+    "code": "CF",
+    "desc": "\"Amcc test has been ordered by an esrd facility or mcp physician that is not part of the composite rate and is separately billable \""
+  },
+  { "code": "CG", "desc": "\"Policy criteria applied \"" },
+  { "code": "CH", "desc": "\"0 percent impaired" },
+  { "code": "CI", "desc": "\"At least 1 percent but less than 20 percent impaired" },
+  { "code": "CJ", "desc": "\"At least 20 percent but less than 40 percent impaired" },
+  { "code": "CK", "desc": "\"At least 40 percent but less than 60 percent impaired" },
+  { "code": "CL", "desc": "\"At least 60 percent but less than 80 percent impaired" },
+  { "code": "CM", "desc": "\"At least 80 percent but less than 100 percent impaired" },
+  { "code": "CN", "desc": "\"100 percent impaired" },
+  {
+    "code": "CO",
+    "desc": "\"Outpatient occupational therapy services furnished in whole or in part by an occupational therapy assistant \""
+  },
+  {
+    "code": "CP",
+    "desc": "\"Adjunctive service related to a procedure assigned to a comprehensive ambulatory payment classification (c-apc) procedure"
+  },
+  {
+    "code": "CQ",
+    "desc": "\"Outpatient physical therapy services furnished in whole or in part by a physical therapist assistant \""
+  },
+  { "code": "CR", "desc": "\"Catastrophe/disaster related \"" },
+  {
+    "code": "CS",
+    "desc": "\"Cost-sharing waived for specified covid-19 testing-related services that result in and order for or administration of a covid-19 test and/or used for cost-sharing waived preventive services furnished via telehealth in rural health clinics and federally qualified health centers during the covid-19 public health emergency \""
+  },
+  {
+    "code": "CT",
+    "desc": "\"Computed tomography services furnished using equipment that does not meet each of the attributes of the national electrical manufacturers association (nema) xr-29-2013 standard \""
+  },
+  { "code": "DA", "desc": "\"Oral health assessment by a licensed health professional other than a dentist \"" },
+  { "code": "E1", "desc": "\"Upper left" },
+  { "code": "E2", "desc": "\"Lower left" },
+  { "code": "E3", "desc": "\"Upper right" },
+  { "code": "E4", "desc": "\"Lower right" },
+  {
+    "code": "EA",
+    "desc": "\"Erythropoetic stimulating agent (esa) administered to treat anemia due to anti-cancer chemotherapy \""
+  },
+  {
+    "code": "EB",
+    "desc": "\"Erythropoetic stimulating agent (esa) administered to treat anemia due to anti-cancer radiotherapy \""
+  },
+  {
+    "code": "EC",
+    "desc": "\"Erythropoetic stimulating agent (esa) administered to treat anemia not due to anti-cancer radiotherapy or anti-cancer chemotherapy \""
+  },
+  {
+    "code": "ED",
+    "desc": "\"Hematocrit level has exceeded 39% (or hemoglobin level has exceeded 13.0 g/dl) for 3 or more consecutive billing cycles immediately prior to and including the current cycle \""
+  },
+  {
+    "code": "EE",
+    "desc": "\"Hematocrit level has not exceeded 39% (or hemoglobin level has not exceeded 13.0 g/dl) for 3 or more consecutive billing cycles immediately prior to and including the current cycle \""
+  },
+  { "code": "EJ", "desc": "\"Subsequent claims for a defined course of therapy" },
+  { "code": "EM", "desc": "\"Emergency reserve supply (for esrd benefit only) \"" },
+  {
+    "code": "EP",
+    "desc": "\"Service provided as part of medicaid early periodic screening diagnosis and treatment (epsdt) program \""
+  },
+  { "code": "ER", "desc": "\"Items and services furnished by a provider-based" },
+  { "code": "ET", "desc": "\"Emergency services \"" },
+  { "code": "EX", "desc": "\"Expatriate beneficiary \"" },
+  { "code": "EY", "desc": "\"No physician or other licensed health care provider order for this item or service \"" },
+  { "code": "F1", "desc": "\"Left hand" },
+  { "code": "F2", "desc": "\"Left hand" },
+  { "code": "F3", "desc": "\"Left hand" },
+  { "code": "F4", "desc": "\"Left hand" },
+  { "code": "F5", "desc": "\"Right hand" },
+  { "code": "F6", "desc": "\"Right hand" },
+  { "code": "F7", "desc": "\"Right hand" },
+  { "code": "F8", "desc": "\"Right hand" },
+  { "code": "F9", "desc": "\"Right hand" },
+  { "code": "FA", "desc": "\"Left hand" },
+  { "code": "FB", "desc": "\"Item provided without cost to provider" },
+  { "code": "FC", "desc": "\"Partial credit received for replaced device \"" },
+  { "code": "FP", "desc": "\"Service provided as part of family planning program \"" },
+  { "code": "FQ", "desc": "\"The service was furnished using audio-only communication technology \"" },
+  { "code": "FR", "desc": "\"The supervising practitioner was present through two-way" },
+  { "code": "FS", "desc": "\"Split (or shared) evaluation and management visit \"" },
+  {
+    "code": "FT",
+    "desc": "\"Unrelated evaluation and management (e/m) visit on the same day as another e/m visit or during a global procedure (preoperative"
+  },
+  { "code": "FX", "desc": "\"X-ray taken using film \"" },
+  { "code": "FY", "desc": "\"X-ray taken using computed radiography technology/cassette-based imaging \"" },
+  { "code": "G0", "desc": "\"Telehealth services for diagnosis" },
+  { "code": "G1", "desc": "\"Most recent urr reading of less than 60 \"" },
+  { "code": "G2", "desc": "\"Most recent urr reading of 60 to 64.9 \"" },
+  { "code": "G3", "desc": "\"Most recent urr reading of 65 to 69.9 \"" },
+  { "code": "G4", "desc": "\"Most recent urr reading of 70 to 74.9 \"" },
+  { "code": "G5", "desc": "\"Most recent urr reading of 75 or greater \"" },
+  { "code": "G6", "desc": "\"Esrd patient for whom less than six dialysis sessions have been provided in a month \"" },
+  {
+    "code": "G7",
+    "desc": "\"Pregnancy resulted from rape or incest or pregnancy certified by physician as life threatening \""
+  },
+  { "code": "G8", "desc": "\"Monitored anesthesia care (mac) for deep complex" },
+  {
+    "code": "G9",
+    "desc": "\"Monitored anesthesia care for patient who has history of severe cardio-pulmonary condition \""
+  },
+  { "code": "GA", "desc": "\"Waiver of liability statement issued as required by payer policy" },
+  {
+    "code": "GB",
+    "desc": "\"Claim being re-submitted for payment because it is no longer covered under a global payment demonstration \""
+  },
+  {
+    "code": "GC",
+    "desc": "\"This service has been performed in part by a resident under the direction of a teaching physician \""
+  },
+  {
+    "code": "GD",
+    "desc": "\"Units of service exceeds medically unlikely edit value and represents reasonable and necessary services \""
+  },
+  {
+    "code": "GE",
+    "desc": "\"This service has been performed by a resident without the presence of a teaching physician under the primary care exception \""
+  },
+  { "code": "GF", "desc": "\"Non-physician (e.g. nurse practitioner (np)" },
+  {
+    "code": "GG",
+    "desc": "\"Performance and payment of a screening mammogram and diagnostic mammogram on the same patient"
+  },
+  { "code": "GH", "desc": "\"Diagnostic mammogram converted from screening mammogram on same day \"" },
+  { "code": "GJ", "desc": "\"\\\"opt out\\\" physician or practitioner emergency or urgent service \"" },
+  { "code": "GK", "desc": "\"Reasonable and necessary item/service associated with a ga or gz modifier \"" },
+  { "code": "GL", "desc": "\"Medically unnecessary upgrade provided instead of non-upgraded item" },
+  { "code": "GM", "desc": "\"Multiple patients on one ambulance trip \"" },
+  { "code": "GN", "desc": "\"Services delivered under an outpatient speech language pathology plan of care \"" },
+  { "code": "GO", "desc": "\"Services delivered under an outpatient occupational therapy plan of care \"" },
+  { "code": "GP", "desc": "\"Services delivered under an outpatient physical therapy plan of care \"" },
+  { "code": "GQ", "desc": "\"Via asynchronous telecommunications system \"" },
+  {
+    "code": "GR",
+    "desc": "\"This service was performed in whole or in part by a resident in a department of veterans affairs medical center or clinic"
+  },
+  {
+    "code": "GS",
+    "desc": "\"Dosage of erythropoietin stimulating agent has been reduced and maintained in response to hematocrit or hemoglobin level \""
+  },
+  { "code": "GT", "desc": "\"Via interactive audio and video telecommunication systems \"" },
+  { "code": "GU", "desc": "\"Waiver of liability statement issued as required by payer policy" },
+  {
+    "code": "GV",
+    "desc": "\"Attending physician not employed or paid under arrangement by the patient's hospice provider \""
+  },
+  { "code": "GW", "desc": "\"Service not related to the hospice patient's terminal condition \"" },
+  { "code": "GX", "desc": "\"Notice of liability issued" },
+  { "code": "GY", "desc": "\"Item or service statutorily excluded" },
+  { "code": "GZ", "desc": "\"Item or service expected to be denied as not reasonable and necessary \"" },
+  { "code": "H9", "desc": "\"Court-ordered \"" },
+  { "code": "HA", "desc": "\"Child/adolescent program \"" },
+  { "code": "HB", "desc": "\"Adult program" },
+  { "code": "HC", "desc": "\"Adult program" },
+  { "code": "HD", "desc": "\"Pregnant/parenting women's program \"" },
+  { "code": "HE", "desc": "\"Mental health program \"" },
+  { "code": "HF", "desc": "\"Substance abuse program \"" },
+  { "code": "HG", "desc": "\"Opioid addiction treatment program \"" },
+  { "code": "HH", "desc": "\"Integrated mental health/substance abuse program \"" },
+  { "code": "HI", "desc": "\"Integrated mental health and intellectual disability/developmental disabilities program \"" },
+  { "code": "HJ", "desc": "\"Employee assistance program \"" },
+  { "code": "HK", "desc": "\"Specialized mental health programs for high-risk populations \"" },
+  { "code": "HL", "desc": "\"Intern \"" },
+  { "code": "HM", "desc": "\"Less than bachelor degree level \"" },
+  { "code": "HN", "desc": "\"Bachelors degree level \"" },
+  { "code": "HO", "desc": "\"Masters degree level \"" },
+  { "code": "HP", "desc": "\"Doctoral level \"" },
+  { "code": "HQ", "desc": "\"Group setting \"" },
+  { "code": "HR", "desc": "\"Family/couple with client present \"" },
+  { "code": "HS", "desc": "\"Family/couple without client present \"" },
+  { "code": "HT", "desc": "\"Multi-disciplinary team \"" },
+  { "code": "HU", "desc": "\"Funded by child welfare agency \"" },
+  { "code": "HV", "desc": "\"Funded state addictions agency \"" },
+  { "code": "HW", "desc": "\"Funded by state mental health agency \"" },
+  { "code": "HX", "desc": "\"Funded by county/local agency \"" },
+  { "code": "HY", "desc": "\"Funded by juvenile justice agency \"" },
+  { "code": "HZ", "desc": "\"Funded by criminal justice agency \"" },
+  { "code": "J1", "desc": "\"Competitive acquisition program no-pay submission for a prescription number \"" },
+  { "code": "J2", "desc": "\"Competitive acquisition program" },
+  { "code": "J3", "desc": "\"Competitive acquisition program (cap)" },
+  {
+    "code": "J4",
+    "desc": "\"Dmepos item subject to dmepos competitive bidding program that is furnished by a hospital upon discharge \""
+  },
+  {
+    "code": "J5",
+    "desc": "\"Off-the-shelf orthotic subject to dmepos competitive bidding program that is furnished as part of a physical therapist or occupational therapist professional service \""
+  },
+  { "code": "JA", "desc": "\"Administered intravenously \"" },
+  { "code": "JB", "desc": "\"Administered subcutaneously \"" },
+  { "code": "JC", "desc": "\"Skin substitute used as a graft \"" },
+  { "code": "JD", "desc": "\"Skin substitute not used as a graft \"" },
+  { "code": "JE", "desc": "\"Administered via dialysate \"" },
+  { "code": "JF", "desc": "\"Compounded drug \"" },
+  { "code": "JG", "desc": "\"Drug or biological acquired with 340b drug pricing program discount" },
+  { "code": "JK", "desc": "\"One month supply or less of drug or biological \"" },
+  { "code": "JL", "desc": "\"Three month supply of drug or biological \"" },
+  { "code": "JW", "desc": "\"Drug amount discarded/not administered to any patient \"" },
+  { "code": "JZ", "desc": "\"Zero drug amount discarded/not administered to any patient \"" },
+  {
+    "code": "K0",
+    "desc": "\"Lower extremity prosthesis functional level 0 - does not have the ability or potential to ambulate or transfer safely with or without assistance and a prosthesis does not enhance their quality of life or mobility. \""
+  },
+  {
+    "code": "K1",
+    "desc": "\"Lower extremity prosthesis functional level 1 - has the ability or potential to use a prosthesis for transfers or ambulation on level surfaces at fixed cadence. typical of the limited and unlimited household ambulator. \""
+  },
+  {
+    "code": "K2",
+    "desc": "\"Lower extremity prosthesis functional level 2 - has the ability or potential for ambulation with the ability to traverse low level environmental barriers such as curbs"
+  },
+  {
+    "code": "K3",
+    "desc": "\"Lower extremity prosthesis functional level 3 - has the ability or potential for ambulation with variable cadence.  typical of the community ambulator who has the ability to transverse most environmental barriers and may have vocational"
+  },
+  {
+    "code": "K4",
+    "desc": "\"Lower extremity prosthesis functional level 4 - has the ability or potential for prosthetic ambulation that exceeds the basic ambulation skills"
+  },
+  { "code": "KA", "desc": "\"Add on option/accessory for wheelchair \"" },
+  { "code": "KB", "desc": "\"Beneficiary requested upgrade for abn" },
+  { "code": "KC", "desc": "\"Replacement of special power wheelchair interface \"" },
+  { "code": "KD", "desc": "\"Drug or biological infused through dme \"" },
+  {
+    "code": "KE",
+    "desc": "\"Bid under round one of the dmepos competitive bidding program for use with non-competitive bid base equipment \""
+  },
+  { "code": "KF", "desc": "\"Item designated by fda as class iii device \"" },
+  { "code": "KG", "desc": "\"Dmepos item subject to dmepos competitive bidding program number 1 \"" },
+  { "code": "KH", "desc": "\"Dmepos item" },
+  { "code": "KI", "desc": "\"Dmepos item" },
+  { "code": "KJ", "desc": "\"Dmepos item" },
+  { "code": "KK", "desc": "\"Dmepos item subject to dmepos competitive bidding program number 2 \"" },
+  { "code": "KL", "desc": "\"Dmepos item delivered via mail \"" },
+  { "code": "KM", "desc": "\"Replacement of facial prosthesis including new impression/moulage \"" },
+  { "code": "KN", "desc": "\"Replacement of facial prosthesis using previous master model \"" },
+  { "code": "KO", "desc": "\"Single drug unit dose formulation \"" },
+  { "code": "KP", "desc": "\"First drug of a multiple drug unit dose formulation \"" },
+  { "code": "KQ", "desc": "\"Second or subsequent drug of a multiple drug unit dose formulation \"" },
+  { "code": "KR", "desc": "\"Rental item" },
+  { "code": "KS", "desc": "\"Glucose monitor supply for diabetic beneficiary not treated with insulin \"" },
+  {
+    "code": "KT",
+    "desc": "\"Beneficiary resides in a competitive bidding area and travels outside that competitive bidding area and receives a competitive bid item \""
+  },
+  { "code": "KU", "desc": "\"Dmepos item subject to dmepos competitive bidding program number 3 \"" },
+  {
+    "code": "KV",
+    "desc": "\"Dmepos item subject to dmepos competitive bidding program that is furnished as part of a professional service \""
+  },
+  { "code": "KW", "desc": "\"Dmepos item subject to dmepos competitive bidding program number 4 \"" },
+  { "code": "KX", "desc": "\"Requirements specified in the medical policy have been met \"" },
+  { "code": "KY", "desc": "\"Dmepos item subject to dmepos competitive bidding program number 5 \"" },
+  { "code": "KZ", "desc": "\"New coverage not implemented by managed care \"" },
+  {
+    "code": "L1",
+    "desc": "\"Provider attestation that the hospital laboratory test(s) is not packaged under the hospital opps \""
+  },
+  { "code": "LC", "desc": "\"Left circumflex coronary artery \"" },
+  { "code": "LD", "desc": "\"Left anterior descending coronary artery \"" },
+  {
+    "code": "LL",
+    "desc": "\"Lease/rental (use the 'll' modifier when dme equipment rental is to be applied against the purchase price) \""
+  },
+  { "code": "LM", "desc": "\"Left main coronary artery \"" },
+  { "code": "LR", "desc": "\"Laboratory round trip \"" },
+  { "code": "LS", "desc": "\"Fda-monitored intraocular lens implant \"" },
+  { "code": "LT", "desc": "\"Left side (used to identify procedures performed on the left side of the body) \"" },
+  { "code": "LU", "desc": "\"Fractionated payment \"" },
+  { "code": "M2", "desc": "\"Medicare secondary payer (msp) \"" },
+  {
+    "code": "MA",
+    "desc": "\"Ordering professional is not required to consult a clinical decision support mechanism due to service being rendered to a patient with a suspected or confirmed emergency medical condition \""
+  },
+  {
+    "code": "MB",
+    "desc": "\"Ordering professional is not required to consult a clinical decision support mechanism due to the significant hardship exception of insufficient internet access \""
+  },
+  {
+    "code": "MC",
+    "desc": "\"Ordering professional is not required to consult a clinical decision support mechanism due to the significant hardship exception of electronic health record or clinical decision support mechanism vendor issues \""
+  },
+  {
+    "code": "MD",
+    "desc": "\"Ordering professional is not required to consult a clinical decision support mechanism due to the significant hardship exception of extreme and uncontrollable circumstances \""
+  },
+  {
+    "code": "ME",
+    "desc": "\"The order for this service adheres to appropriate use criteria in the clinical decision support mechanism consulted by the ordering professional \""
+  },
+  {
+    "code": "MF",
+    "desc": "\"The order for this service does not adhere to the appropriate use criteria in the clinical decision support mechanism consulted by the ordering professional \""
+  },
+  {
+    "code": "MG",
+    "desc": "\"The order for this service does not have applicable appropriate use criteria in the qualified clinical decision support mechanism consulted by the ordering professional \""
+  },
+  {
+    "code": "MH",
+    "desc": "\"Unknown if ordering professional consulted a clinical decision support mechanism for this service"
+  },
+  {
+    "code": "MS",
+    "desc": "\"Six month maintenance and servicing fee for reasonable and necessary parts and labor which are not covered under any manufacturer or supplier warranty \""
+  },
+  { "code": "N1", "desc": "\"Group 1 oxygen coverage criteria met \"" },
+  { "code": "N2", "desc": "\"Group 2 oxygen coverage criteria met \"" },
+  { "code": "N3", "desc": "\"Group 3 oxygen coverage criteria met \"" },
+  { "code": "NB", "desc": "\"Nebulizer system" },
+  {
+    "code": "NR",
+    "desc": "\"New when rented (use the 'nr' modifier when dme which was new at the time of rental is subsequently purchased) \""
+  },
+  { "code": "NU", "desc": "\"New equipment \"" },
+  { "code": "P1", "desc": "\"A normal healthy patient \"" },
+  { "code": "P2", "desc": "\"A patient with mild systemic disease \"" },
+  { "code": "P3", "desc": "\"A patient with severe systemic disease \"" },
+  { "code": "P4", "desc": "\"A patient with severe systemic disease that is a constant threat to life \"" },
+  { "code": "P5", "desc": "\"A moribund patient who is not expected to survive without the operation \"" },
+  { "code": "P6", "desc": "\"A declared brain-dead patient whose organs are being removed for donor purposes \"" },
+  { "code": "PA", "desc": "\"Surgical or other invasive procedure on wrong body part \"" },
+  { "code": "PB", "desc": "\"Surgical or other invasive procedure on wrong patient \"" },
+  { "code": "PC", "desc": "\"Wrong surgery or other invasive procedure on patient \"" },
+  {
+    "code": "PD",
+    "desc": "\"Diagnostic or related non diagnostic item or service provided in a wholly owned or operated entity to a patient who is admitted as an inpatient within 3 days \""
+  },
+  {
+    "code": "PI",
+    "desc": "\"Positron emission tomography (pet) or pet/computed tomography (ct) to inform the initial treatment strategy of tumors that are biopsy proven or strongly suspected of being cancerous based on other diagnostic testing \""
+  },
+  { "code": "PL", "desc": "\"Progressive addition lenses \"" },
+  { "code": "PM", "desc": "\"Post mortem \"" },
+  { "code": "PN", "desc": "\"Non-excepted service provided at an off-campus" },
+  { "code": "PO", "desc": "\"Excepted service provided at an off-campus" },
+  {
+    "code": "PS",
+    "desc": "\"Positron emission tomography (pet) or pet/computed tomography (ct) to inform the subsequent treatment strategy of cancerous tumors when the beneficiary's treating physician determines that the pet study is needed to inform subsequent anti-tumor strategy \""
+  },
+  { "code": "PT", "desc": "\"Colorectal cancer screening test; converted to diagnostic test or other procedure \"" },
+  {
+    "code": "Q0",
+    "desc": "\"Investigational clinical service provided in a clinical research study that is in an approved clinical research study \""
+  },
+  {
+    "code": "Q1",
+    "desc": "\"Routine clinical service provided in a clinical research study that is in an approved clinical research study \""
+  },
+  { "code": "Q2", "desc": "\"Demonstration procedure/service \"" },
+  { "code": "Q3", "desc": "\"Live kidney donor surgery and related services \"" },
+  { "code": "Q4", "desc": "\"Service for ordering/referring physician qualifies as a service exemption \"" },
+  {
+    "code": "Q5",
+    "desc": "\"Service furnished under a reciprocal billing arrangement by a substitute physician or by a substitute physical therapist furnishing outpatient physical therapy services in a health professional shortage area"
+  },
+  {
+    "code": "Q6",
+    "desc": "\"Service furnished under a fee-for-time compensation arrangement by a substitute physician or by a substitute physical therapist furnishing outpatient physical therapy services in a health professional shortage area"
+  },
+  { "code": "Q7", "desc": "\"One class a finding \"" },
+  { "code": "Q8", "desc": "\"Two class b findings \"" },
+  { "code": "Q9", "desc": "\"One class b and two class c findings \"" },
+  {
+    "code": "QA",
+    "desc": "\"Prescribed amounts of stationary oxygen for daytime use while at rest and nighttime use differ and the average of the two amounts is less than 1 liter per minute (lpm) \""
+  },
+  {
+    "code": "QB",
+    "desc": "\"Prescribed amounts of stationary oxygen for daytime use while at rest and nighttime use differ and the average of the two amounts exceeds 4 liters per minute (lpm) and portable oxygen is prescribed \""
+  },
+  { "code": "QC", "desc": "\"Single channel monitoring \"" },
+  { "code": "QD", "desc": "\"Recording and storage in solid state memory by a digital recorder \"" },
+  {
+    "code": "QE",
+    "desc": "\"Prescribed amount of stationary oxygen while at rest is less than 1 liter per minute (lpm) \""
+  },
+  {
+    "code": "QF",
+    "desc": "\"Prescribed amount of stationary oxygen while at rest exceeds 4 liters per minute (lpm) and portable oxygen is prescribed \""
+  },
+  {
+    "code": "QG",
+    "desc": "\"Prescribed amount of stationary oxygen while at rest is greater than 4 liters per minute (lpm) \""
+  },
+  { "code": "QH", "desc": "\"Oxygen conserving device is being used with an oxygen delivery system \"" },
+  { "code": "QJ", "desc": "\"Services/items provided to a prisoner or patient in state or local custody" },
+  { "code": "QK", "desc": "\"Medical direction of two" },
+  { "code": "QL", "desc": "\"Patient pronounced dead after ambulance called \"" },
+  { "code": "QM", "desc": "\"Ambulance service provided under arrangement by a provider of services \"" },
+  { "code": "QN", "desc": "\"Ambulance service furnished directly by a provider of services \"" },
+  {
+    "code": "QP",
+    "desc": "\"Documentation is on file showing that the laboratory test(s) was ordered individually or ordered as a cpt-recognized panel other than automated profile codes 80002-80019"
+  },
+  {
+    "code": "QQ",
+    "desc": "\"Ordering professional consulted a qualified clinical decision support mechanism for this service and the related data was provided to the furnishing professional \""
+  },
+  {
+    "code": "QR",
+    "desc": "\"Prescribed amounts of stationary oxygen for daytime use while at rest and nighttime use differ and the average of the two amounts is greater than 4 liters per minute (lpm) \""
+  },
+  { "code": "QS", "desc": "\"Monitored anesthesia care service \"" },
+  { "code": "QT", "desc": "\"Recording and storage on tape by an analog tape recorder \"" },
+  { "code": "QW", "desc": "\"Clia waived test \"" },
+  { "code": "QX", "desc": "\"Crna service: with medical direction by a physician \"" },
+  {
+    "code": "QY",
+    "desc": "\"Medical direction of one certified registered nurse anesthetist (crna) by an anesthesiologist \""
+  },
+  { "code": "QZ", "desc": "\"Crna service: without medical direction by a physician \"" },
+  { "code": "RA", "desc": "\"Replacement of a dme" },
+  { "code": "RB", "desc": "\"Replacement of a part of a dme" },
+  { "code": "RC", "desc": "\"Right coronary artery \"" },
+  { "code": "RD", "desc": "\"Drug provided to beneficiary" },
+  {
+    "code": "RE",
+    "desc": "\"Furnished in full compliance with fda-mandated risk evaluation and mitigation strategy (rems) \""
+  },
+  { "code": "RI", "desc": "\"Ramus intermedius coronary artery \"" },
+  { "code": "RR", "desc": "\"Rental (use the 'rr' modifier when dme is to be rented) \"" },
+  { "code": "RT", "desc": "\"Right side (used to identify procedures performed on the right side of the body \"" },
+  { "code": "SA", "desc": "\"Nurse practitioner rendering service in collaboration with a physician \"" },
+  { "code": "SB", "desc": "\"Nurse midwife \"" },
+  { "code": "SC", "desc": "\"Medically necessary service or supply \"" },
+  { "code": "SD", "desc": "\"Services provided by registered nurse with specialized" },
+  { "code": "SE", "desc": "\"State and/or federally-funded programs/services \"" },
+  { "code": "SF", "desc": "\"Second opinion ordered by a professional review organization (pro) per section 9401" },
+  { "code": "SG", "desc": "\"Ambulatory surgical center (asc) facility service \"" },
+  { "code": "SH", "desc": "\"Second concurrently administered infusion therapy \"" },
+  { "code": "SJ", "desc": "\"Third or more concurrently administered infusion therapy \"" },
+  { "code": "SK", "desc": "\"Member of high risk population (use only with codes for immunization) \"" },
+  { "code": "SL", "desc": "\"State supplied vaccine \"" },
+  { "code": "SM", "desc": "\"Second surgical opinion \"" },
+  { "code": "SN", "desc": "\"Third surgical opinion \"" },
+  { "code": "SQ", "desc": "\"Item ordered by home health \"" },
+  { "code": "SS", "desc": "\"Home infusion services provided in the infusion suite of the iv therapy provide \"" },
+  { "code": "ST", "desc": "\"Related to trauma or injury \"" },
+  { "code": "SU", "desc": "\"Procedure performed in physician's office (to denote use of facility and equipment) \"" },
+  { "code": "SV", "desc": "\"Pharmaceuticals delivered to patient's home but not utilized \"" },
+  { "code": "SW", "desc": "\"Services provided by a certified diabetic educator \"" },
+  {
+    "code": "SY",
+    "desc": "\"Persons who are in close contact with member of high-risk population (use only with codes for immunization) \""
+  },
+  { "code": "SZ", "desc": "\"Habilitative services \"" },
+  { "code": "T1", "desc": "\"Left foot" },
+  { "code": "T2", "desc": "\"Left foot" },
+  { "code": "T3", "desc": "\"Left foot" },
+  { "code": "T4", "desc": "\"Left foot" },
+  { "code": "T5", "desc": "\"Right foot" },
+  { "code": "T6", "desc": "\"Right foot" },
+  { "code": "T7", "desc": "\"Right foot" },
+  { "code": "T8", "desc": "\"Right foot" },
+  { "code": "T9", "desc": "\"Right foot" },
+  { "code": "TA", "desc": "\"Left foot" },
+  { "code": "TB", "desc": "\"Drug or biological acquired with 340b drug pricing program discount" },
+  { "code": "TC", "desc": "\"Technical component; under certain circumstances" },
+  { "code": "TD", "desc": "\"Rn \"" },
+  { "code": "TE", "desc": "\"Lpn/lvn \"" },
+  { "code": "TF", "desc": "\"Intermediate level of care \"" },
+  { "code": "TG", "desc": "\"Complex/high tech level of care \"" },
+  { "code": "TH", "desc": "\"Obstetrical treatment/services" },
+  { "code": "TJ", "desc": "\"Program group" },
+  { "code": "TK", "desc": "\"Extra patient or passenger" },
+  { "code": "TL", "desc": "\"Early intervention/individualized family service plan (ifsp) \"" },
+  { "code": "TM", "desc": "\"Individualized education program (iep) \"" },
+  { "code": "TN", "desc": "\"Rural/outside providers' customary service area \"" },
+  { "code": "TP", "desc": "\"Medical transport" },
+  { "code": "TQ", "desc": "\"Basic life support transport by a volunteer ambulance provider \"" },
+  {
+    "code": "TR",
+    "desc": "\"School-based individualized education program (iep) services provided outside the public school district responsible for the student \""
+  },
+  { "code": "TS", "desc": "\"Follow-up service \"" },
+  { "code": "TT", "desc": "\"Individualized service provided to more than one patient in same setting \"" },
+  { "code": "TU", "desc": "\"Special payment rate" },
+  { "code": "TV", "desc": "\"Special payment rates" },
+  { "code": "TW", "desc": "\"Back-up equipment \"" },
+  { "code": "U1", "desc": "\"Medicaid level of care 1" },
+  { "code": "U2", "desc": "\"Medicaid level of care 2" },
+  { "code": "U3", "desc": "\"Medicaid level of care 3" },
+  { "code": "U4", "desc": "\"Medicaid level of care 4" },
+  { "code": "U5", "desc": "\"Medicaid level of care 5" },
+  { "code": "U6", "desc": "\"Medicaid level of care 6" },
+  { "code": "U7", "desc": "\"Medicaid level of care 7" },
+  { "code": "U8", "desc": "\"Medicaid level of care 8" },
+  { "code": "U9", "desc": "\"Medicaid level of care 9" },
+  { "code": "UA", "desc": "\"Medicaid level of care 10" },
+  { "code": "UB", "desc": "\"Medicaid level of care 11" },
+  { "code": "UC", "desc": "\"Medicaid level of care 12" },
+  { "code": "UD", "desc": "\"Medicaid level of care 13" },
+  { "code": "UE", "desc": "\"Used durable medical equipment \"" },
+  { "code": "UF", "desc": "\"Services provided in the morning \"" },
+  { "code": "UG", "desc": "\"Services provided in the afternoon \"" },
+  { "code": "UH", "desc": "\"Services provided in the evening \"" },
+  { "code": "UJ", "desc": "\"Services provided at night \"" },
+  {
+    "code": "UK",
+    "desc": "\"Services provided on behalf of the client to someone other than the client (collateral relationship) \""
+  },
+  { "code": "UN", "desc": "\"Two patients served \"" },
+  { "code": "UP", "desc": "\"Three patients served \"" },
+  { "code": "UQ", "desc": "\"Four patients served \"" },
+  { "code": "UR", "desc": "\"Five patients served \"" },
+  { "code": "US", "desc": "\"Six or more patients served \"" },
+  { "code": "V1", "desc": "\"Demonstration modifier 1 \"" },
+  { "code": "V2", "desc": "\"Demonstration modifier 2 \"" },
+  { "code": "V3", "desc": "\"Demonstration modifier 3 \"" },
+  { "code": "V4", "desc": "\"Demonstration modifier 4 \"" },
+  { "code": "V5", "desc": "\"Vascular catheter (alone or with any other vascular access) \"" },
+  { "code": "V6", "desc": "\"Arteriovenous graft (or other vascular access not including a vascular catheter \"" },
+  { "code": "V7", "desc": "\"Arteriovenous fistula only (in use with two needles) \"" },
+  { "code": "V8", "desc": "\"Infection present \"" },
+  { "code": "V9", "desc": "\"No infection present \"" },
+  { "code": "VM", "desc": "\"Medicare diabetes prevention program (mdpp) virtual make-up session \"" },
+  { "code": "VP", "desc": "\"Aphakic patient \"" },
+  { "code": "X1", "desc": "\"Continuous/broad services: for reporting services by clinicians" },
+  {
+    "code": "X2",
+    "desc": "\"Continuous/focused services: for reporting services by clinicians whose expertise is needed for the ongoing management of a chronic disease or a condition that needs to be managed and followed with no planned endpoint to the relationship; reporting clinician service examples include but are not limited to: a rheumatologist taking care of the patient's rheumatoid arthritis longitudinally but not providing general primary care services \""
+  },
+  {
+    "code": "X3",
+    "desc": "\"Episodic/broad servies: for reporting services by clinicians who have broad responsibility for the comprehensive needs of the patient that is limited to a defined period and circumstance such as a hospitalization; reporting clinician service examples include but are not limited to the hospitalist's services rendered providing comprehensive and general care to a patient while admitted to the hospital \""
+  },
+  {
+    "code": "X4",
+    "desc": "\"Episodic/focused services: for reporting services by clinicians who provide focused care on particular types of treatment limited to a defined period and circumstance; the patient has a problem"
+  },
+  {
+    "code": "X5",
+    "desc": "\"Diagnostic services requested by another clinician: for reporting services by a clinician who furnishes care to the patient only as requested by another clinician or subsequent and related services requested by another clinician; this modifier is reported for patient relationships that may not be adequately captured by the above alternative categories; reporting clinician service examples include but are not limited to"
+  },
+  { "code": "XE", "desc": "\"Separate encounter" },
+  { "code": "XP", "desc": "\"Separate practitioner" },
+  { "code": "XS", "desc": "\"Separate structure" },
+  { "code": "XU", "desc": "\"Unusual non-overlapping service" },
+  { "code": "ZA", "desc": "\"Novartis/sandoz \"" },
+  { "code": "ZB", "desc": "\"Pfizer/hospira \"" },
+  { "code": "ZC", "desc": "\"Merck/samsung bioepis \"" }
+]
+
+ICD CODES:
+
+[{"code": "M02.839", "desc": "\"Other reactive arthropathies"}, {"code": "M02.841", "desc": "\"Other reactive arthropathies"}, {"code": "M02.842", "desc": "\"Other reactive arthropathies"}, {"code": "M02.849", "desc": "\"Other reactive arthropathies"}, {"code": "M02.851", "desc": "\"Other reactive arthropathies"}, {"code": "M02.852", "desc": "\"Other reactive arthropathies"}, {"code": "M02.859", "desc": "\"Other reactive arthropathies"}, {"code": "M02.861", "desc": "\"Other reactive arthropathies"}, {"code": "M02.862", "desc": "\"Other reactive arthropathies"}, {"code": "M02.869", "desc": "\"Other reactive arthropathies"}, {"code": "M02.871", "desc": "\"Other reactive arthropathies"}, {"code": "M02.872", "desc": "\"Other reactive arthropathies"}, {"code": "M02.879", "desc": "\"Other reactive arthropathies"}, {"code": "M02.88", "desc": "\"Other reactive arthropathies"}, {"code": "M02.89", "desc": "\"Other reactive arthropathies"}, {"code": "M02.9", "desc": "\"Reactive arthropathy"}, {"code": "M04.1", "desc": "\"Periodic fever syndromes\""}, {"code": "M04.2", "desc": "\"Cryopyrin-associated periodic syndromes\""}, {"code": "M04.8", "desc": "\"Other autoinflammatory syndromes\""}, {"code": "M04.9", "desc": "\"Autoinflammatory syndrome"}, {"code": "M05.00", "desc": "\"Felty's syndrome"}, {"code": "M05.011", "desc": "\"Felty's syndrome"}, {"code": "M05.012", "desc": "\"Felty's syndrome"}, {"code": "M05.019", "desc": "\"Felty's syndrome"}, {"code": "M05.021", "desc": "\"Felty's syndrome"}, {"code": "M05.022", "desc": "\"Felty's syndrome"}, {"code": "M05.029", "desc": "\"Felty's syndrome"}, {"code": "M05.031", "desc": "\"Felty's syndrome"}, {"code": "M05.032", "desc": "\"Felty's syndrome"}, {"code": "M05.039", "desc": "\"Felty's syndrome"}, {"code": "M05.041", "desc": "\"Felty's syndrome"}, {"code": "M05.042", "desc": "\"Felty's syndrome"}, {"code": "M05.049", "desc": "\"Felty's syndrome"}, {"code": "M05.051", "desc": "\"Felty's syndrome"}, {"code": "M05.052", "desc": "\"Felty's syndrome"}, {"code": "M05.059", "desc": "\"Felty's syndrome"}, {"code": "M05.061", "desc": "\"Felty's syndrome"}, {"code": "M05.062", "desc": "\"Felty's syndrome"}, {"code": "M05.069", "desc": "\"Felty's syndrome"}, {"code": "M05.071", "desc": "\"Felty's syndrome"}, {"code": "M05.072", "desc": "\"Felty's syndrome"}, {"code": "M05.079", "desc": "\"Felty's syndrome"}, {"code": "M05.09", "desc": "\"Felty's syndrome"}, {"code": "M05.10", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of unspecified site\""}, {"code": "M05.111", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of right shoulder\""}, {"code": "M05.112", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of left shoulder\""}, {"code": "M05.119", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of unspecified shoulder\""}, {"code": "M05.121", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of right elbow\""}, {"code": "M05.122", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of left elbow\""}, {"code": "M05.129", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of unspecified elbow\""}, {"code": "M05.131", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of right wrist\""}, {"code": "M05.132", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of left wrist\""}, {"code": "M05.139", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of unspecified wrist\""}, {"code": "M05.141", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of right hand\""}, {"code": "M05.142", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of left hand\""}, {"code": "M05.149", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of unspecified hand\""}, {"code": "M05.151", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of right hip\""}, {"code": "M05.152", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of left hip\""}, {"code": "M05.159", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of unspecified hip\""}, {"code": "M05.161", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of right knee\""}, {"code": "M05.162", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of left knee\""}, {"code": "M05.169", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of unspecified knee\""}, {"code": "M05.171", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of right ankle and foot\""}, {"code": "M05.172", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of left ankle and foot\""}, {"code": "M05.179", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of unspecified ankle and foot\""}, {"code": "M05.19", "desc": "\"Rheumatoid lung disease with rheumatoid arthritis of multiple sites\""}, {"code": "M05.20", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of unspecified site\""}, {"code": "M05.211", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of right shoulder\""}, {"code": "M05.212", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of left shoulder\""}, {"code": "M05.219", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of unspecified shoulder\""}, {"code": "M05.221", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of right elbow\""}, {"code": "M05.222", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of left elbow\""}, {"code": "M05.229", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of unspecified elbow\""}, {"code": "M05.231", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of right wrist\""}, {"code": "M05.232", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of left wrist\""}, {"code": "M05.239", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of unspecified wrist\""}, {"code": "M05.241", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of right hand\""}, {"code": "M05.242", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of left hand\""}, {"code": "M05.249", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of unspecified hand\""}, {"code": "M05.251", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of right hip\""}, {"code": "M05.252", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of left hip\""}, {"code": "M05.259", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of unspecified hip\""}, {"code": "M05.261", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of right knee\""}, {"code": "M05.262", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of left knee\""}, {"code": "M05.269", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of unspecified knee\""}, {"code": "M05.271", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of right ankle and foot\""}, {"code": "M05.272", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of left ankle and foot\""}, {"code": "M05.279", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of unspecified ankle and foot\""}, {"code": "M05.29", "desc": "\"Rheumatoid vasculitis with rheumatoid arthritis of multiple sites\""}, {"code": "M05.30", "desc": "\"Rheumatoid heart disease with rheumatoid arthritis of unspecified site\""}, {"code": "M05.311", "desc": "\"Rheumatoid heart disease with rheumatoid arthritis of right shoulder\""}]
+
+CPT CODES:
+
+[{"code": "15572", "desc": "\"Formation of direct or tubed pedicle"}, {"code": "15574", "desc": "\"Formation of direct or tubed pedicle"}, {"code": "15576", "desc": "\"Formation of direct or tubed pedicle"}, {"code": "15600", "desc": "Delay of flap or sectioning of flap (division and inset); at trunk"}, {"code": "15610", "desc": "\"Delay of flap or sectioning of flap (division and inset); at scalp"}, {"code": "15620", "desc": "\"Delay of flap or sectioning of flap (division and inset); at forehead"}, {"code": "15630", "desc": "\"Delay of flap or sectioning of flap (division and inset); at eyelids"}, {"code": "15650", "desc": "\"Transfer"}, {"code": "15730", "desc": "\"Midface flap (ie"}, {"code": "15731", "desc": "\"Forehead flap with preservation of vascular pedicle (eg"}, {"code": "15733", "desc": "\"Muscle"}, {"code": "15734", "desc": "\"Muscle"}, {"code": "15736", "desc": "\"Muscle"}, {"code": "15738", "desc": "\"Muscle"}, {"code": "15740", "desc": "Flap; island pedicle requiring identification and dissection of an anatomically named axial vessel"}, {"code": "15750", "desc": "Flap; neurovascular pedicle"}, {"code": "15756", "desc": "Free muscle or myocutaneous flap with microvascular anastomosis"}, {"code": "15757", "desc": "Free skin flap with microvascular anastomosis"}, {"code": "15758", "desc": "Free fascial flap with microvascular anastomosis"}, {"code": "15760", "desc": "\"Graft; composite (eg"}, {"code": "15769", "desc": "\"Grafting of autologous soft tissue"}, {"code": "15770", "desc": "Graft; derma-fat-fascia"}, {"code": "15771", "desc": "\"Grafting of autologous fat harvested by liposuction technique to trunk"}, {"code": "15772", "desc": "\"Grafting of autologous fat harvested by liposuction technique to trunk"}, {"code": "15773", "desc": "\"Grafting of autologous fat harvested by liposuction technique to face"}, {"code": "15774", "desc": "\"Grafting of autologous fat harvested by liposuction technique to face"}, {"code": "15775", "desc": "Punch graft for hair transplant; 1 to 15 punch grafts"}, {"code": "15776", "desc": "Punch graft for hair transplant; more than 15 punch grafts"}, {"code": "15777", "desc": "\"Implantation of biologic implant (eg"}, {"code": "15778", "desc": "\"Implantation of absorbable mesh or other prosthesis for delayed closure of defect(s) (ie"}, {"code": "15780", "desc": "\"Dermabrasion; total face (eg"}, {"code": "15781", "desc": "\"Dermabrasion; segmental"}, {"code": "15782", "desc": "\"Dermabrasion; regional"}, {"code": "15783", "desc": "\"Dermabrasion; superficial"}, {"code": "15786", "desc": "\"Abrasion; single lesion (eg"}, {"code": "15787", "desc": "Abrasion; each additional 4 lesions or less (List separately in addition to code for primary procedure)"}, {"code": "15788", "desc": "\"Chemical peel"}, {"code": "15789", "desc": "\"Chemical peel"}, {"code": "15792", "desc": "\"Chemical peel"}, {"code": "15793", "desc": "\"Chemical peel"}, {"code": "15819", "desc": "Cervicoplasty"}, {"code": "15820", "desc": "\"Blepharoplasty"}, {"code": "15821", "desc": "\"Blepharoplasty"}, {"code": "15822", "desc": "\"Blepharoplasty"}, {"code": "15823", "desc": "\"Blepharoplasty"}, {"code": "15824", "desc": "Rhytidectomy; forehead"}, {"code": "15825", "desc": "\"Rhytidectomy; neck with platysmal tightening (platysmal flap"}, {"code": "15826", "desc": "Rhytidectomy; glabellar frown lines"}, {"code": "15828", "desc": "\"Rhytidectomy; cheek"}, {"code": "15829", "desc": "Rhytidectomy; superficial musculoaponeurotic system (SMAS) flap"}, {"code": "15830", "desc": "\"Excision"}, {"code": "15832", "desc": "\"Excision"}, {"code": "15833", "desc": "\"Excision"}, {"code": "15834", "desc": "\"Excision"}, {"code": "15835", "desc": "\"Excision"}, {"code": "15836", "desc": "\"Excision"}, {"code": "15837", "desc": "\"Excision"}, {"code": "15838", "desc": "\"Excision"}, {"code": "15839", "desc": "\"Excision"}, {"code": "15840", "desc": "Graft for facial nerve paralysis; free fascia graft (including obtaining fascia)"}, {"code": "15841", "desc": "Graft for facial nerve paralysis; free muscle graft (including obtaining graft)"}, {"code": "15842", "desc": "Graft for facial nerve paralysis; free muscle flap by microsurgical technique"}, {"code": "15845", "desc": "Graft for facial nerve paralysis; regional muscle transfer"}, {"code": "15847", "desc": "\"Excision"}, {"code": "15851", "desc": "\"Removal of sutures or staples requiring anesthesia (ie"}, {"code": "15852", "desc": "Dressing change (for other than burns) under anesthesia (other than local)"}, {"code": "15853", "desc": "Removal of sutures or staples not requiring anesthesia (List separately in addition to E/M code)"}, {"code": "15854", "desc": "Removal of sutures and staples not requiring anesthesia (List separately in addition to E/M code)"}, {"code": "15860", "desc": "\"Intravenous injection of agent (eg"}, {"code": "15876", "desc": "Suction assisted lipectomy; head and neck"}, {"code": "15877", "desc": "Suction assisted lipectomy; trunk"}, {"code": "15878", "desc": "Suction assisted lipectomy; upper extremity"}, {"code": "15879", "desc": "Suction assisted lipectomy; lower extremity"}, {"code": "15920", "desc": "\"Excision"}, {"code": "15922", "desc": "\"Excision"}, {"code": "15931", "desc": "\"Excision"}, {"code": "15933", "desc": "\"Excision"}, {"code": "15934", "desc": "\"Excision"}, {"code": "15935", "desc": "\"Excision"}, {"code": "15936", "desc": "\"Excision"}, {"code": "15937", "desc": "\"Excision"}, {"code": "15940", "desc": "\"Excision"}, {"code": "15941", "desc": "\"Excision"}, {"code": "15944", "desc": "\"Excision"}, {"code": "15945", "desc": "\"Excision"}, {"code": "15946", "desc": "\"Excision"}, {"code": "15950", "desc": "\"Excision"}, {"code": "15951", "desc": "\"Excision"}, {"code": "15952", "desc": "\"Excision"}, {"code": "15953", "desc": "\"Excision"}, {"code": "15956", "desc": "\"Excision"}, {"code": "15958", "desc": "\"Excision"}, {"code": "15999", "desc": "\"Unlisted procedure"}, {"code": "16000", "desc": "\"Initial treatment"}, {"code": "16020", "desc": "\"Dressings and/or debridement of partial-thickness burns"}, {"code": "16025", "desc": "\"Dressings and/or debridement of partial-thickness burns"}, {"code": "16030", "desc": "\"Dressings and/or debridement of partial-thickness burns"}, {"code": "16035", "desc": "Escharotomy; initial incision"}, {"code": "16036", "desc": "Escharotomy; each additional incision (List separately in addition to code for primary procedure)"}, {"code": "17000", "desc": "\"Destruction (eg"}, {"code": "17003", "desc": "\"Destruction (eg"}, {"code": "17004", "desc": "\"Destruction (eg"}, {"code": "17106", "desc": "\"Destruction of cutaneous vascular proliferative lesions (eg"}, {"code": "17107", "desc": "\"Destruction of cutaneous vascular proliferative lesions (eg"}, {"code": "17108", "desc": "\"Destruction of cutaneous vascular proliferative lesions (eg"}, {"code": "17110", "desc": "\"Destruction (eg"}, {"code": "17111", "desc": "\"Destruction (eg"}, {"code": "17250", "desc": "\"Chemical cauterization of granulation tissue (ie"}, {"code": "17260", "desc": "\"Destruction"}, {"code": "17261", "desc": "\"Destruction"}, {"code": "17262", "desc": "\"Destruction"}, {"code": "17263", "desc": "\"Destruction"}, {"code": "17264", "desc": "\"Destruction"}, {"code": "17266", "desc": "\"Destruction"}, {"code": "17270", "desc": "\"Destruction"}, {"code": "17271", "desc": "\"Destruction"}, {"code": "17272", "desc": "\"Destruction"}, {"code": "17273", "desc": "\"Destruction"}, {"code": "17274", "desc": "\"Destruction"}, {"code": "17276", "desc": "\"Destruction"}, {"code": "17280", "desc": "\"Destruction"}, {"code": "17281", "desc": "\"Destruction"}, {"code": "17282", "desc": "\"Destruction"}, {"code": "17283", "desc": "\"Destruction"}, {"code": "17284", "desc": "\"Destruction"}, {"code": "17286", "desc": "\"Destruction"}, {"code": "17311", "desc": "\"Mohs micrographic technique"}, {"code": "17312", "desc": "\"Mohs micrographic technique"}, {"code": "17313", "desc": "\"Mohs micrographic technique"}, {"code": "17314", "desc": "\"Mohs micrographic technique"}, {"code": "17315", "desc": "\"Mohs micrographic technique"}, {"code": "17340", "desc": "\"Cryotherapy (CO2 slush"}, {"code": "17360", "desc": "\"Chemical exfoliation for acne (eg"}, {"code": "17380", "desc": "\"Electrolysis epilation"}, {"code": "17999", "desc": "\"Unlisted procedure"}, {"code": "19000", "desc": "Puncture aspiration of cyst of breast;"}, {"code": "19001", "desc": "Puncture aspiration of cyst of breast; each additional cyst (List separately in addition to code for primary procedure)"}, {"code": "19020", "desc": "\"Mastotomy with exploration or drainage of abscess"}, {"code": "19030", "desc": "Injection procedure only for mammary ductogram or galactogram"}, {"code": "19081", "desc": "\"Biopsy"}, {"code": "19082", "desc": "\"Biopsy"}, {"code": "19083", "desc": "\"Biopsy"}, {"code": "19084", "desc": "\"Biopsy"}, {"code": "19085", "desc": "\"Biopsy"}, {"code": "19086", "desc": "\"Biopsy"}, {"code": "19100", "desc": "\"Biopsy of breast; percutaneous"}, {"code": "19101", "desc": "\"Biopsy of breast; open"}, {"code": "19105", "desc": "\"Ablation"}, {"code": "19110", "desc": "\"Nipple exploration"}, {"code": "19112", "desc": "Excision of lactiferous duct fistula"}, {"code": "19120", "desc": "\"Excision of cyst"}, {"code": "19125", "desc": "\"Excision of breast lesion identified by preoperative placement of radiological marker"}, {"code": "19126", "desc": "\"Excision of breast lesion identified by preoperative placement of radiological marker"}, {"code": "19281", "desc": "\"Placement of breast localization device(s) (eg"}, {"code": "19282", "desc": "\"Placement of breast localization device(s) (eg"}, {"code": "19283", "desc": "\"Placement of breast localization device(s) (eg"}, {"code": "19284", "desc": "\"Placement of breast localization device(s) (eg"}, {"code": "19285", "desc": "\"Placement of breast localization device(s) (eg"}, {"code": "19286", "desc": "\"Placement of breast localization device(s) (eg"}, {"code": "19287", "desc": "\"Placement of breast localization device(s) (eg clip"}, {"code": "19288", "desc": "\"Placement of breast localization device(s) (eg clip"}, {"code": "19294", "desc": "\"Preparation of tumor cavity"}, {"code": "19296", "desc": "\"Placement of radiotherapy afterloading expandable catheter (single or multichannel) into the breast for interstitial radioelement application following partial mastectomy"}, {"code": "19297", "desc": "\"Placement of radiotherapy afterloading expandable catheter (single or multichannel) into the breast for interstitial radioelement application following partial mastectomy"}, {"code": "19298", "desc": "\"Placement of radiotherapy after loading brachytherapy catheters (multiple tube and button type) into the breast for interstitial radioelement application following (at the time of or subsequent to) partial mastectomy"}, {"code": "19300", "desc": "Mastectomy for gynecomastia"}, {"code": "19301", "desc": "\"Mastectomy"}, {"code": "19302", "desc": "\"Mastectomy"}, {"code": "19303", "desc": "\"Mastectomy"}, {"code": "19305", "desc": "\"Mastectomy"}, {"code": "19306", "desc": "\"Mastectomy"}, {"code": "19307", "desc": "\"Mastectomy"}, {"code": "19316", "desc": "Mastopexy"}, {"code": "19318", "desc": "Breast reduction"}, {"code": "19325", "desc": "Breast augmentation with implant"}, {"code": "19328", "desc": "Removal of intact breast implant"}, {"code": "19330", "desc": "\"Removal of ruptured breast implant"}, {"code": "19340", "desc": "\"Insertion of breast implant on same day of mastectomy (ie"}, {"code": "19342", "desc": "Insertion or replacement of breast implant on separate day from mastectomy"}, {"code": "19350", "desc": "Nipple/areola reconstruction"}, {"code": "19355", "desc": "Correction of inverted nipples"}, {"code": "19357", "desc": "\"Tissue expander placement in breast reconstruction"}, {"code": "19361", "desc": "Breast reconstruction; with latissimus dorsi flap"}, {"code": "19364", "desc": "\"Breast reconstruction; with free flap (eg"}, {"code": "19367", "desc": "Breast reconstruction; with single-pedicled transverse rectus abdominis myocutaneous (TRAM) flap"}, {"code": "19368", "desc": "\"Breast reconstruction; with single-pedicled transverse rectus abdominis myocutaneous (TRAM) flap"}, {"code": "19369", "desc": "Breast reconstruction; with bipedicled transverse rectus abdominis myocutaneous (TRAM) flap"}, {"code": "19370", "desc": "\"Revision of peri-implant capsule"}, {"code": "19371", "desc": "\"Peri-implant capsulectomy"}, {"code": "19380", "desc": "\"Revision of reconstructed breast (eg"}, {"code": "19396", "desc": "Preparation of moulage for custom breast implant"}, {"code": "19499", "desc": "\"Unlisted procedure"}, {"code": "2000F", "desc": "Blood pressure measured (CKD)(DM)"}, {"code": "2001F", "desc": "Weight recorded (PAG)"}, {"code": "2002F", "desc": "Clinical signs of volume overload (excess) assessed (NMA-No Measure Associated)"}, {"code": "2004F", "desc": "\"Initial examination of the involved joint(s) (includes visual inspection"}, {"code": "20100", "desc": "Exploration of penetrating wound (separate procedure); neck"}, {"code": "20101", "desc": "Exploration of penetrating wound (separate procedure); chest"}, {"code": "20102", "desc": "Exploration of penetrating wound (separate procedure); abdomen/flank/back"}, {"code": "20103", "desc": "Exploration of penetrating wound (separate procedure); extremity"}, {"code": "2010F", "desc": "\"Vital signs (temperature"}, {"code": "2014F", "desc": "Mental status assessed (CAP) (EM)"}, {"code": "20150", "desc": "\"Excision of epiphyseal bar"}, {"code": "2015F", "desc": "Asthma impairment assessed (Asthma)"}, {"code": "2016F", "desc": "Asthma risk assessed (Asthma)"}, {"code": "2018F", "desc": "Hydration status assessed (normal/mildly dehydrated/severely dehydrated) (CAP)"}, {"code": "2019F", "desc": "\"Dilated macular exam performed"}, {"code": "20200", "desc": "\"Biopsy"}, {"code": "20205", "desc": "\"Biopsy"}, {"code": "20206", "desc": "\"Biopsy"}, {"code": "2020F", "desc": "Dilated fundus evaluation performed within 12 months prior to cataract surgery (EC)"}, {"code": "2021F", "desc": "\"Dilated macular or fundus exam performed"}, {"code": "20220", "desc": "\"Biopsy"}, {"code": "20225", "desc": "\"Biopsy"}, {"code": "2022F", "desc": "Dilated retinal eye exam with interpretation by an ophthalmologist or optometrist documented and reviewed; with evidence of retinopathy (DM)"}, {"code": "2023F", "desc": "Dilated retinal eye exam with interpretation by an ophthalmologist or optometrist documented and reviewed; without evidence of retinopathy (DM)"}, {"code": "20240", "desc": "\"Biopsy"}, {"code": "20245", "desc": "\"Biopsy"}, {"code": "2024F", "desc": "7 standard field stereoscopic retinal photos with interpretation by an ophthalmologist or optometrist documented and reviewed; with evidence of retinopathy (DM)"}, {"code": "20250", "desc": "\"Biopsy"}, {"code": "20251", "desc": "\"Biopsy"}, {"code": "2025F", "desc": "7 standard field stereoscopic retinal photos with interpretation by an ophthalmologist or optometrist documented and reviewed; without evidence of retinopathy (DM)"}, {"code": "2026F", "desc": "Eye imaging validated to match diagnosis from 7 standard field stereoscopic retinal photos results documented and reviewed; with evidence of retinopathy (DM)"}, {"code": "2027F", "desc": "Optic nerve head evaluation performed (EC)"}, {"code": "2028F", "desc": "\"Foot examination performed (includes examination through visual inspection"}, {"code": "2029F", "desc": "Complete physical skin exam performed (ML)"}, {"code": "2030F", "desc": "\"Hydration status documented"}, {"code": "2031F", "desc": "\"Hydration status documented"}, {"code": "2033F", "desc": "Eye imaging validated to match diagnosis from 7 standard field stereoscopic retinal photos results documented and reviewed; without evidence of retinopathy (DM)"}, {"code": "2035F", "desc": "Tympanic membrane mobility assessed with pneumatic otoscopy or tympanometry (OME)"}, {"code": "2040F", "desc": "\"Physical examination on the date of the initial visit for low back pain performed"}, {"code": "2044F", "desc": "Documentation of mental health assessment prior to intervention (back surgery or epidural steroid injection) or for back pain episode lasting longer than 6 weeks (BkP)"}, {"code": "20500", "desc": "Injection of sinus tract; therapeutic (separate procedure)"}, {"code": "20501", "desc": "Injection of sinus tract; diagnostic (sinogram)"}, {"code": "2050F", "desc": "Wound characteristics including size and nature of wound base tissue and amount of drainage prior to debridement documented (CWC)"}, {"code": "20520", "desc": "Removal of foreign body in muscle or tendon sheath; simple"}, {"code": "20525", "desc": "Removal of foreign body in muscle or tendon sheath; deep or complicated"}, {"code": "20526", "desc": "\"Injection"}, {"code": "20527", "desc": "\"Injection"}, {"code": "20550", "desc": "\"Injection(s); single tendon sheath"}, {"code": "20551", "desc": "Injection(s); single tendon origin/insertion"}, {"code": "20552", "desc": "\"Injection(s); single or multiple trigger point(s)"}, {"code": "20553", "desc": "\"Injection(s); single or multiple trigger point(s)"}, {"code": "20555", "desc": "Placement of needles or catheters into muscle and/or soft tissue for subsequent interstitial radioelement application (at the time of or subsequent to the procedure)"}, {"code": "20560", "desc": "Needle insertion(s) without injection(s); 1 or 2 muscle(s)"}, {"code": "20561", "desc": "Needle insertion(s) without injection(s); 3 or more muscles"}, {"code": "20600", "desc": "\"Arthrocentesis"}, {"code": "20604", "desc": "\"Arthrocentesis"}, {"code": "20605", "desc": "\"Arthrocentesis"}, {"code": "20606", "desc": "\"Arthrocentesis"}, {"code": "2060F", "desc": "Patient interviewed directly on or before date of diagnosis of major depressive disorder (MDD ADOL)"}, {"code": "20610", "desc": "\"Arthrocentesis"}, {"code": "20611", "desc": "\"Arthrocentesis"}, {"code": "20612", "desc": "Aspiration and/or injection of ganglion cyst(s) any location"}, {"code": "20615", "desc": "Aspiration and injection for treatment of bone cyst"}, {"code": "20650", "desc": "\"Insertion of wire or pin with application of skeletal traction"}, {"code": "20660", "desc": "\"Application of cranial tongs"}, {"code": "20661", "desc": "\"Application of halo"}, {"code": "20662", "desc": "\"Application of halo"}, {"code": "20663", "desc": "\"Application of halo"}, {"code": "20664", "desc": "\"Application of halo"}, {"code": "20665", "desc": "Removal of tongs or halo applied by another individual"}, {"code": "20670", "desc": "\"Removal of implant; superficial (eg"}, {"code": "20680", "desc": "\"Removal of implant; deep (eg"}, {"code": "20690", "desc": "\"Application of a uniplane (pins or wires in 1 plane)"}, {"code": "20692", "desc": "\"Application of a multiplane (pins or wires in more than 1 plane)"}, {"code": "20693", "desc": "\"Adjustment or revision of external fixation system requiring anesthesia (eg"}, {"code": "20694", "desc": "\"Removal"}, {"code": "20696", "desc": "\"Application of multiplane (pins or wires in more than 1 plane)"}, {"code": "20697", "desc": "\"Application of multiplane (pins or wires in more than 1 plane)"}, {"code": "20700", "desc": "\"Manual preparation and insertion of drug-delivery device(s)"}, {"code": "20701", "desc": "\"Removal of drug-delivery device(s)"}, {"code": "20702", "desc": "\"Manual preparation and insertion of drug-delivery device(s)"}, {"code": "20703", "desc": "\"Removal of drug-delivery device(s)"}, {"code": "20704", "desc": "\"Manual preparation and insertion of drug-delivery device(s)"}, {"code": "20705", "desc": "\"Removal of drug-delivery device(s)"}, {"code": "20802", "desc": "\"Replantation"}, {"code": "20805", "desc": "\"Replantation"}, {"code": "20808", "desc": "\"Replantation"}, {"code": "20816", "desc": "\"Replantation"}, {"code": "20822", "desc": "\"Replantation"}, {"code": "20824", "desc": "\"Replantation"}, {"code": "20827", "desc": "\"Replantation"}, {"code": "20838", "desc": "\"Replantation"}, {"code": "20900", "desc": "\"Bone graft"}, {"code": "20902", "desc": "\"Bone graft"}, {"code": "20910", "desc": "Cartilage graft; costochondral"}, {"code": "20912", "desc": "Cartilage graft; nasal septum"}, {"code": "20920", "desc": "Fascia lata graft; by stripper"}, {"code": "20922", "desc": "\"Fascia lata graft; by incision and area exposure"}, {"code": "20924", "desc": "\"Tendon graft"}, {"code": "20930", "desc": "\"Allograft"}, {"code": "20931", "desc": "\"Allograft"}, {"code": "20932", "desc": "\"Allograft"}, {"code": "20933", "desc": "\"Allograft"}, {"code": "20934", "desc": "\"Allograft"}, {"code": "20936", "desc": "\"Autograft for spine surgery only (includes harvesting the graft); local (eg"}, {"code": "20937", "desc": "Autograft for spine surgery only (includes harvesting the graft); morselized (through separate skin or fascial incision) (List separately in addition to code for primary procedure)"}, {"code": "20938", "desc": "\"Autograft for spine surgery only (includes harvesting the graft); structural"}, {"code": "20939", "desc": "\"Bone marrow aspiration for bone grafting"}, {"code": "20950", "desc": "\"Monitoring of interstitial fluid pressure (includes insertion of device"}, {"code": "20955", "desc": "Bone graft with microvascular anastomosis; fibula"}, {"code": "20956", "desc": "Bone graft with microvascular anastomosis; iliac crest"}, {"code": "20957", "desc": "Bone graft with microvascular anastomosis; metatarsal"}, {"code": "20962", "desc": "\"Bone graft with microvascular anastomosis; other than fibula"}, {"code": "20969", "desc": "\"Free osteocutaneous flap with microvascular anastomosis; other than iliac crest"}, {"code": "20970", "desc": "Free osteocutaneous flap with microvascular anastomosis; iliac crest"}, {"code": "20972", "desc": "Free osteocutaneous flap with microvascular anastomosis; metatarsal"}, {"code": "20973", "desc": "Free osteocutaneous flap with microvascular anastomosis; great toe with web space"}, {"code": "20974", "desc": "Electrical stimulation to aid bone healing; noninvasive (nonoperative)"}, {"code": "20975", "desc": "Electrical stimulation to aid bone healing; invasive (operative)"}, {"code": "20979", "desc": "\"Low intensity ultrasound stimulation to aid bone healing"}, {"code": "20982", "desc": "\"Ablation therapy for reduction or eradication of 1 or more bone tumors (eg"}, {"code": "20983", "desc": "\"Ablation therapy for reduction or eradication of 1 or more bone tumors (eg"}, {"code": "20985", "desc": "\"Computer-assisted surgical navigational procedure for musculoskeletal procedures"}, {"code": "20999", "desc": "\"Unlisted procedure"}, {"code": "21010", "desc": "\"Arthrotomy"}, {"code": "21011", "desc": "\"Excision"}, {"code": "21012", "desc": "\"Excision"}, {"code": "21013", "desc": "\"Excision"}, {"code": "21014", "desc": "\"Excision"}, {"code": "21015", "desc": "\"Radical resection of tumor (eg"}, {"code": "21016", "desc": "\"Radical resection of tumor (eg"}, {"code": "21025", "desc": "\"Excision of bone (eg"}, {"code": "21026", "desc": "\"Excision of bone (eg"}, {"code": "21029", "desc": "\"Removal by contouring of benign tumor of facial bone (eg"}, {"code": "21030", "desc": "Excision of benign tumor or cyst of maxilla or zygoma by enucleation and curettage"}, {"code": "21031", "desc": "Excision of torus mandibularis"}, {"code": "21032", "desc": "Excision of maxillary torus palatinus"}, {"code": "21034", "desc": "Excision of malignant tumor of maxilla or zygoma"}, {"code": "21040", "desc": "\"Excision of benign tumor or cyst of mandible"}, {"code": "21044", "desc": "Excision of malignant tumor of mandible;"}, {"code": "21045", "desc": "Excision of malignant tumor of mandible; radical resection"}, {"code": "21046", "desc": "\"Excision of benign tumor or cyst of mandible; requiring intra-oral osteotomy (eg"}, {"code": "21047", "desc": "\"Excision of benign tumor or cyst of mandible; requiring extra-oral osteotomy and partial mandibulectomy (eg"}, {"code": "21048", "desc": "\"Excision of benign tumor or cyst of maxilla; requiring intra-oral osteotomy (eg"}, {"code": "21049", "desc": "\"Excision of benign tumor or cyst of maxilla; requiring extra-oral osteotomy and partial maxillectomy (eg"}, {"code": "21050", "desc": "\"Condylectomy"}, {"code": "21060", "desc": "\"Meniscectomy"}, {"code": "21070", "desc": "Coronoidectomy (separate procedure)"}, {"code": "21073", "desc": "\"Manipulation of temporomandibular joint(s) (TMJ)"}, {"code": "21076", "desc": "Impression and custom preparation; surgical obturator prosthesis"}, {"code": "21077", "desc": "Impression and custom preparation; orbital prosthesis"}, {"code": "21079", "desc": "Impression and custom preparation; interim obturator prosthesis"}, {"code": "21080", "desc": "Impression and custom preparation; definitive obturator prosthesis"}, {"code": "21081", "desc": "Impression and custom preparation; mandibular resection prosthesis"}, {"code": "21082", "desc": "Impression and custom preparation; palatal augmentation prosthesis"}, {"code": "21083", "desc": "Impression and custom preparation; palatal lift prosthesis"}, {"code": "21084", "desc": "Impression and custom preparation; speech aid prosthesis"}, {"code": "21085", "desc": "Impression and custom preparation; oral surgical splint"}, {"code": "21086", "desc": "Impression and custom preparation; auricular prosthesis"}, {"code": "21087", "desc": "Impression and custom preparation; nasal prosthesis"}, {"code": "21088", "desc": "Impression and custom preparation; facial prosthesis"}, {"code": "21089", "desc": "Unlisted maxillofacial prosthetic procedure"}, {"code": "21100", "desc": "\"Application of halo type appliance for maxillofacial fixation"}, {"code": "21110", "desc": "\"Application of interdental fixation device for conditions other than fracture or dislocation"}, {"code": "21116", "desc": "Injection procedure for temporomandibular joint arthrography"}, {"code": "21120", "desc": "\"Genioplasty; augmentation (autograft"}, {"code": "21121", "desc": "\"Genioplasty; sliding osteotomy"}, {"code": "21122", "desc": "\"Genioplasty; sliding osteotomies"}, {"code": "21123", "desc": "\"Genioplasty; sliding"}, {"code": "21125", "desc": "\"Augmentation"}, {"code": "21127", "desc": "\"Augmentation"}, {"code": "21137", "desc": "Reduction forehead; contouring only"}, {"code": "21138", "desc": "Reduction forehead; contouring and application of prosthetic material or bone graft (includes obtaining autograft)"}, {"code": "21139", "desc": "Reduction forehead; contouring and setback of anterior frontal sinus wall"}, {"code": "21141", "desc": "\"Reconstruction midface"}, {"code": "21142", "desc": "\"Reconstruction midface"}, {"code": "21143", "desc": "\"Reconstruction midface"}, {"code": "21145", "desc": "\"Reconstruction midface"}, {"code": "21146", "desc": "\"Reconstruction midface"}, {"code": "21147", "desc": "\"Reconstruction midface"}, {"code": "21150", "desc": "\"Reconstruction midface"}, {"code": "21151", "desc": "\"Reconstruction midface"}, {"code": "21154", "desc": "\"Reconstruction midface"}, {"code": "21155", "desc": "\"Reconstruction midface"}, {"code": "21159", "desc": "\"Reconstruction midface"}, {"code": "21160", "desc": "\"Reconstruction midface"}, {"code": "21172", "desc": "\"Reconstruction superior-lateral orbital rim and lower forehead"}, {"code": "21175", "desc": "\"Reconstruction"}, {"code": "21179", "desc": "\"Reconstruction"}, {"code": "21180", "desc": "\"Reconstruction"}, {"code": "21181", "desc": "\"Reconstruction by contouring of benign tumor of cranial bones (eg"}, {"code": "21182", "desc": "\"Reconstruction of orbital walls"}, {"code": "21183", "desc": "\"Reconstruction of orbital walls"}, {"code": "21184", "desc": "\"Reconstruction of orbital walls"}, {"code": "21188", "desc": "\"Reconstruction midface"}, {"code": "21193", "desc": "\"Reconstruction of mandibular rami"}, {"code": "21194", "desc": "\"Reconstruction of mandibular rami"}, {"code": "21195", "desc": "\"Reconstruction of mandibular rami and/or body"}, {"code": "21196", "desc": "\"Reconstruction of mandibular rami and/or body"}, {"code": "21198", "desc": "\"Osteotomy"}, {"code": "21199", "desc": "\"Osteotomy"}, {"code": "21206", "desc": "\"Osteotomy"}, {"code": "21208", "desc": "\"Osteoplasty"}, {"code": "21209", "desc": "\"Osteoplasty"}, {"code": "21210", "desc": "\"Graft"}, {"code": "21215", "desc": "\"Graft"}, {"code": "21230", "desc": "\"Graft; rib cartilage"}, {"code": "21235", "desc": "\"Graft; ear cartilage"}, {"code": "21240", "desc": "\"Arthroplasty"}, {"code": "21242", "desc": "\"Arthroplasty"}, {"code": "21243", "desc": "\"Arthroplasty"}, {"code": "21244", "desc": "\"Reconstruction of mandible"}, {"code": "21245", "desc": "\"Reconstruction of mandible or maxilla"}, {"code": "21246", "desc": "\"Reconstruction of mandible or maxilla"}, {"code": "21247", "desc": "\"Reconstruction of mandibular condyle with bone and cartilage autografts (includes obtaining grafts) (eg"}, {"code": "21248", "desc": "\"Reconstruction of mandible or maxilla"}, {"code": "21249", "desc": "\"Reconstruction of mandible or maxilla"}, {"code": "21255", "desc": "Reconstruction of zygomatic arch and glenoid fossa with bone and cartilage (includes obtaining autografts)"}, {"code": "21256", "desc": "\"Reconstruction of orbit with osteotomies (extracranial) and with bone grafts (includes obtaining autografts) (eg"}, {"code": "21260", "desc": "\"Periorbital osteotomies for orbital hypertelorism"}, {"code": "21261", "desc": "\"Periorbital osteotomies for orbital hypertelorism"}, {"code": "21263", "desc": "\"Periorbital osteotomies for orbital hypertelorism"}, {"code": "21267", "desc": "\"Orbital repositioning"}, {"code": "21268", "desc": "\"Orbital repositioning"}, {"code": "21270", "desc": "\"Malar augmentation"}, {"code": "21275", "desc": "Secondary revision of orbitocraniofacial reconstruction"}, {"code": "21280", "desc": "Medial canthopexy (separate procedure)"}, {"code": "21282", "desc": "Lateral canthopexy"}, {"code": "21295", "desc": "\"Reduction of masseter muscle and bone (eg"}, {"code": "21296", "desc": "\"Reduction of masseter muscle and bone (eg"}, {"code": "21299", "desc": "Unlisted craniofacial and maxillofacial procedure"}, {"code": "21315", "desc": "Closed treatment of nasal bone fracture with manipulation; without stabilization"}, {"code": "21320", "desc": "Closed treatment of nasal bone fracture with manipulation; with stabilization"}, {"code": "21325", "desc": "Open treatment of nasal fracture; uncomplicated"}, {"code": "21330", "desc": "\"Open treatment of nasal fracture; complicated"}, {"code": "21335", "desc": "Open treatment of nasal fracture; with concomitant open treatment of fractured septum"}, {"code": "21336", "desc": "\"Open treatment of nasal septal fracture"}, {"code": "21337", "desc": "\"Closed treatment of nasal septal fracture"}, {"code": "21338", "desc": "Open treatment of nasoethmoid fracture; without external fixation"}, {"code": "21339", "desc": "Open treatment of nasoethmoid fracture; with external fixation"}, {"code": "21340", "desc": "\"Percutaneous treatment of nasoethmoid complex fracture"}, {"code": "21343", "desc": "Open treatment of depressed frontal sinus fracture"}, {"code": "21344", "desc": "\"Open treatment of complicated (eg"}, {"code": "21345", "desc": "\"Closed treatment of nasomaxillary complex fracture (LeFort II type)"}, {"code": "21346", "desc": "Open treatment of nasomaxillary complex fracture (LeFort II type); with wiring and/or local fixation"}, {"code": "21347", "desc": "Open treatment of nasomaxillary complex fracture (LeFort II type); requiring multiple open approaches"}, {"code": "21348", "desc": "Open treatment of nasomaxillary complex fracture (LeFort II type); with bone grafting (includes obtaining graft)"}, {"code": "21355", "desc": "\"Percutaneous treatment of fracture of malar area"}, {"code": "21356", "desc": "\"Open treatment of depressed zygomatic arch fracture (eg"}, {"code": "21360", "desc": "\"Open treatment of depressed malar fracture"}, {"code": "21365", "desc": "\"Open treatment of complicated (eg"}, {"code": "21366", "desc": "\"Open treatment of complicated (eg"}, {"code": "21385", "desc": "Open treatment of orbital floor blowout fracture; transantral approach (Caldwell-Luc type operation)"}, {"code": "21386", "desc": "Open treatment of orbital floor blowout fracture; periorbital approach"}, {"code": "21387", "desc": "Open treatment of orbital floor blowout fracture; combined approach"}, {"code": "21390", "desc": "\"Open treatment of orbital floor blowout fracture; periorbital approach"}, {"code": "21395", "desc": "Open treatment of orbital floor blowout fracture; periorbital approach with bone graft (includes obtaining graft)"}, {"code": "21400", "desc": "\"Closed treatment of fracture of orbit"}, {"code": "21401", "desc": "\"Closed treatment of fracture of orbit"}, {"code": "21406", "desc": "\"Open treatment of fracture of orbit"}, {"code": "21407", "desc": "\"Open treatment of fracture of orbit"}, {"code": "21408", "desc": "\"Open treatment of fracture of orbit"}, {"code": "21421", "desc": "\"Closed treatment of palatal or maxillary fracture (LeFort I type)"}, {"code": "21422", "desc": "Open treatment of palatal or maxillary fracture (LeFort I type);"}, {"code": "21423", "desc": "\"Open treatment of palatal or maxillary fracture (LeFort I type); complicated (comminuted or involving cranial nerve foramina)"}, {"code": "21431", "desc": "Closed treatment of craniofacial separation (LeFort III type) using interdental wire fixation of denture or splint"}, {"code": "21432", "desc": "Open treatment of craniofacial separation (LeFort III type); with wiring and/or internal fixation"}]

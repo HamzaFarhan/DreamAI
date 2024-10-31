@@ -24,16 +24,14 @@ reasoning = Annotated[
     str,
     Field(
         ...,
-        description="Explain why you chose this code. The explanation should mention the code's description and what text in the claim matched with that description.",
-    ),
+        description="Explain why you chose this code. The explanation should mention the code's description and what text in the claim matched with that description.")
 ]
 
 
 class Patient(BaseModel):
     medical_record_number: str = Field(
         ...,
-        description="Any identifier you care to send that uniquely identifies a particular patient",
-    )
+        description="Any identifier you care to send that uniquely identifies a particular patient")
     birth: date_type = Field(..., description="The patient's birthdate")
     gender: Literal["M", "F"]
 
@@ -61,23 +59,19 @@ class ProcedureItem(BaseModel):
     procedure_code_reasoning: reasoning
     from_date: date_type = Field(
         ...,
-        description="The starting date on which the procedure was performed. This field can be the same as the date-of-service",
-    )
+        description="The starting date on which the procedure was performed. This field can be the same as the date-of-service")
     to_date: date_type = Field(
         ...,
-        description="The ending date on which the procedure was performed. This field can be the same as the date-of-service",
-    )
+        description="The ending date on which the procedure was performed. This field can be the same as the date-of-service")
     modifier_list: list[Modifier] = Field(
         default_factory=list,
         description="List of modifiers. May contain 0 to 4 modifiers",
         min_length=0,
-        max_length=4,
-    )
+        max_length=4)
     diagnosis_list: list[Diagnosis]
     place_of_service: str | None = Field(
         None,
-        description="A 2-character place of service overriding the default-place-of-service",
-    )
+        description="A 2-character place of service overriding the default-place-of-service")
     units: int = Field(..., description="Number of procedure units")
     unitstime: int | None = Field(
         None, description="Number of minutes spent doing the procedure (optional)"
@@ -90,16 +84,14 @@ class Procedure(BaseModel):
 
 class Claim(BaseModel):
     carrier_code: str = Field(
-        ..., description="The standard code identifying the payer (eg MC051 is Medi-Cal)"
-    )
+        ...,
+        description="The standard code identifying the payer (eg MC051 is Medi-Cal)")
     state: str = Field(
         ...,
-        description="The standard 2-character state abbreviation code (eg. VT for Vermont)",
-    )
+        description="The standard 2-character state abbreviation code (eg. VT for Vermont)")
     practice: str = Field(
         ...,
-        description="Any identifier you care to send that uniquely identifies the practice",
-    )
+        description="Any identifier you care to send that uniquely identifies the practice")
     provider: str = Field(..., description="The provider's NPI number")
     default_place_of_service: str = Field(
         ..., description="A 2-character place of service code"
@@ -109,8 +101,7 @@ class Claim(BaseModel):
     procedure_list: list[Procedure] = Field(
         ...,
         description="List of procedures. May contain one or more procedure elements",
-        min_length=1,
-    )
+        min_length=1)
 
 
 class ChartKeywords(BaseModel):
@@ -122,8 +113,7 @@ def create_med_db(
     med_dir: str | Path,
     ems_model="hkunlp/instructor-base",
     ems_model_device: str = "cuda",
-    overwrite: bool = False,
-):
+    overwrite: bool = False):
     logger.info(f"Creating medical database from directory: {med_dir}")
     if isinstance(lance_db, str):
         lance_db = lancedb.connect(lance_db)
@@ -145,8 +135,7 @@ def create_med_db(
             MarkdownChunk(
                 name=code["code"],
                 index=i,
-                text=f"code: {code['code']}\ndescriprion: {code['desc']}",
-            )
+                text=f"code: {code['code']}\ndescriprion: {code['desc']}")
             for i, code in enumerate(json.loads(file.read_text()))
         ]
         logger.info(f"Adding {len(data)} entries to table: {table_name}")
@@ -155,8 +144,7 @@ def create_med_db(
             table_name=table_name,
             data=data,
             ems_model=ems_model,
-            ems_model_device=ems_model_device,
-        )
+            ems_model_device=ems_model_device)
     logger.success("Medical database creation completed")
 
 
@@ -185,8 +173,7 @@ def query_med_db(
     charts_dir: str | Path,
     reranker: str | Reranker | None = "answerdotai/answerai-colbert-small-v1",
     max_search_results: int = MAX_SEARCH_RESULTS,
-    overwrite: bool = False,
-):
+    overwrite: bool = False):
     for file in Path(charts_dir).glob("*_kw.json"):
         output_file = file.with_stem(file.stem + "_retrieved")
         if not overwrite and output_file.exists():
@@ -198,8 +185,9 @@ def query_med_db(
             reranker = ColbertReranker(model_name=reranker)
         kws = json.loads(file.read_text())
         claim_content = re.sub(
-            r"\n+", "\n", file.with_name(file.name.replace("_kw.json", ".md")).read_text()
-        )
+            r"\n+",
+            "\n",
+            file.with_name(file.name.replace("_kw.json", ".md")).read_text())
         # claim_content = [
         #     (
         #         claim_content.replace("**", "")
@@ -228,8 +216,7 @@ def query_med_db(
                 table_name=table_name,
                 query=kws,
                 reranker=reranker,
-                max_search_results=max_search_results,
-            )
+                max_search_results=max_search_results)
         output_file.write_text(json.dumps(res))
         logger.success(f"Retrieved codes for: {file.stem}")
 
@@ -246,18 +233,18 @@ def extract_claims(
             continue
         kw_retrieved_file = chart.with_name(chart.stem + "_kw_retrieved.json")
         if not kw_retrieved_file.exists():
-            logger.warning(f"Skipping {chart.stem} as {kw_retrieved_file} does not exist")
+            logger.warning(
+                f"Skipping {chart.stem} as {kw_retrieved_file} does not exist"
+            )
             continue
         codes = json.loads(kw_retrieved_file.read_text())
         claim_dialog = Dialog(
             task="extraction_task.txt",
-            template="<patient_chart>\n{chart}\n</patient_chart>\n\n<available_codes>\n{codes}\n</available_codes>",
-        )
+            template="<patient_chart>\n{chart}\n</patient_chart>\n\n<available_codes>\n{codes}\n</available_codes>")
         codes["modifiers"] = json.loads(Path(modifiers_file).read_text())
         creator, kwargs = claim_dialog.creator_with_kwargs(
             model=ModelName.GEMINI_FLASH,
-            template_data={"chart": chart.read_text(), "codes": json.dumps(codes)},
-        )
+            template_data={"chart": chart.read_text(), "codes": json.dumps(codes)})
         claim = creator.create(response_model=Claim, **kwargs)
         output_file.write_text(json.dumps(claim.model_dump(), indent=2))  # type: ignore
         logger.success(f"Extracted claim for: {chart.stem}")

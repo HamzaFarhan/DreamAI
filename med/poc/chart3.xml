@@ -1,0 +1,23 @@
+<claim>
+    <carrier-code>UN002</carrier-code>
+    <state>FL</state>
+    <practice>Sunshine Dermatology</practice>
+    <provider>1122334455</provider>
+    <default-place-of-service>11</default-place-of-service>
+    <date-of-service>2024-07-25</date-of-service>
+    <patient>
+        <medical-record-number>RJ00001</medical-record-number>
+        <birth>1950-05-20</birth>
+        <gender>M</gender>
+    </patient>
+    <procedure-list>
+        <procedure>
+            <procedure-code>17004</procedure-code>
+            <diagnosis-list>
+                <diagnosis-code>L57.0</diagnosis-code>
+            </diagnosis-list>
+            <modifier-list/>
+            <units>7</units>
+        </procedure>
+    </procedure-list>
+</claim>

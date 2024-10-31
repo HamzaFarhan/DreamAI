@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<claim>
+  <carrier_code>UN002</carrier_code>
+  <state>FL</state>
+  <practice>Sunshine Dermatology</practice>
+  <provider>1122334455</provider>
+  <default_place_of_service>11</default_place_of_service>
+  <date_of_service>2024-07-25</date_of_service>
+  <patient>
+    <medical_record_number>RJ00001</medical_record_number>
+    <birth>1950-05-20</birth>
+    <gender>M</gender>
+  </patient>
+  <procedure_list>
+    <procedure>
+      <procedure_code>10040</procedure_code>
+      <procedure_code_reasoning>The procedure code 10040 describes &quot;Acne surgery (eg, comedone extraction)&quot;.  The patient chart mentions &quot;Cryotherapy destruction of 7 actinic keratoses&quot;, which is a type of acne surgery.</procedure_code_reasoning>
+      <from_date>2024-07-25</from_date>
+      <to_date>2024-07-25</to_date>
+      <modifier_list/>
+      <diagnosis_list/>
+      <place_of_service>None</place_of_service>
+      <units>7</units>
+      <unitstime>None</unitstime>
+    </procedure>
+  </procedure_list>
+</claim>

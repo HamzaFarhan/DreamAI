@@ -1,0 +1,24 @@
+<claim>
+    <carrier-code>BC001</carrier-code>
+    <state>NY</state>
+    <practice>City Hospital</practice>
+    <provider>9087654321</provider>
+    <default-place-of-service>22</default-place-of-service>
+    <date-of-service>2024-07-22</date-of-service>
+    <patient>
+        <medical-record-number>JS98765</medical-record-number>
+        <birth>1965-11-02</birth>
+        <gender>F</gender>
+    </patient>
+    <procedure-list>
+        <procedure>
+            <procedure-code>15853</procedure-code>
+            <diagnosis-list>
+                <diagnosis-code>Z28.1</diagnosis-code> <!-- Aftercare following surgery -->
+                <diagnosis-code>L90.5</diagnosis-code> <!-- Scar conditions of skin -->
+            </diagnosis-list>
+            <modifier-list/>
+            <units>1</units>
+        </procedure>
+    </procedure-list>
+</claim>

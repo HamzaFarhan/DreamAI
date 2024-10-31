@@ -1,0 +1,31 @@
+<claim>
+  <carrier_code>MC051</carrier_code>
+  <state>CA</state>
+  <practice>GoodHealth Clinic</practice>
+  <provider>1234567890</provider>
+  <default_place_of_service>11</default_place_of_service>
+  <date_of_service>2024-07-20</date_of_service>
+  <patient>
+    <medical_record_number>JD12345</medical_record_number>
+    <birth>1980-03-15</birth>
+    <gender>M</gender>
+  </patient>
+  <procedure_list>
+    <procedure>
+      <procedure_code>27603</procedure_code>
+      <procedure_code_reasoning>The patient presented with right knee pain and swelling, and the physician's plan included a right knee arthrocentesis.  The code 27603, &quot;Incision and drainage&quot;, is the closest available code that aligns with this procedure.</procedure_code_reasoning>
+      <from_date>2024-07-20</from_date>
+      <to_date>2024-07-20</to_date>
+      <modifier_list/>
+      <diagnosis_list>
+        <diagnosis>
+          <diagnosis_code>S83.209A</diagnosis_code>
+          <diagnosis_code_reasoning>This code represents 'Unspecified tear of unspecified meniscus, current injury, right knee'. Based on the chart, the patient has an acute medial meniscus tear of the right knee diagnosed after a twisting injury while playing basketball, with positive McMurray's test on exam. This diagnosis code accurately reflects the documented injury and assessment.</diagnosis_code_reasoning>
+        </diagnosis>
+      </diagnosis_list>
+      <place_of_service>None</place_of_service>
+      <units>1</units>
+      <unitstime>None</unitstime>
+    </procedure>
+  </procedure_list>
+</claim>

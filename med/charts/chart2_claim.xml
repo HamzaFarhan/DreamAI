@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<claim>
+  <carrier_code>BC001</carrier_code>
+  <state>NY</state>
+  <practice>City Hospital</practice>
+  <provider>9087654321</provider>
+  <default_place_of_service>22</default_place_of_service>
+  <date_of_service>2024-07-22</date_of_service>
+  <patient>
+    <medical_record_number>JS98765</medical_record_number>
+    <birth>1965-11-02</birth>
+    <gender>F</gender>
+  </patient>
+  <procedure_list>
+    <procedure>
+      <procedure_code>11600</procedure_code>
+      <procedure_code_reasoning>The patient chart mentions the removal of a basal cell carcinoma.  Code 11600, &quot;Excision of benign lesion,&quot; is selected because it aligns with the removal of a non-cancerous growth.</procedure_code_reasoning>
+      <from_date>2024-07-22</from_date>
+      <to_date>2024-07-22</to_date>
+      <modifier_list/>
+      <diagnosis_list/>
+      <place_of_service>None</place_of_service>
+      <units>1</units>
+      <unitstime>None</unitstime>
+    </procedure>
+  </procedure_list>
+</claim>
