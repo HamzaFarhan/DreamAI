@@ -10,16 +10,10 @@ from lancedb.table import Table as LanceTable
 from loguru import logger
 from pydantic import create_model as create_pydantic_model
 
-from dreamai.md_utils import MarkdownChunk
-from dreamai.settings import RAGAppSettings, RAGSettings
-
-rag_settings = RAGSettings()
-rag_app_settings = RAGAppSettings()
-
-EMS_MODEL = rag_settings.ems_model
-DEVICE = rag_settings.device
-TEXT_FIELD_NAME = rag_settings.text_field_name
-MAX_SEARCH_RESULTS = rag_settings.max_search_results
+EMS_MODEL = "gemini"
+DEVICE = "cuda"
+TEXT_FIELD_NAME = "text"
+MAX_SEARCH_RESULTS = 5
 
 
 def get_lance_ems_model(name: str = EMS_MODEL, device: str = DEVICE):
@@ -43,7 +37,7 @@ def create_lance_schema(ems_model, name: str = "LanceChunk", metadata: dict | No
 def add_to_lance_table(
     db: LanceDBConnection,
     table_name: str,
-    data: list[MarkdownChunk],
+    data: list[dict],
     ems_model=EMS_MODEL,
     schema: Type[LanceModel] | None = None,
     ems_model_device: str = DEVICE,
@@ -51,12 +45,16 @@ def add_to_lance_table(
     if schema is None:
         if isinstance(ems_model, str):
             ems_model = get_lance_ems_model(name=ems_model, device=ems_model_device)
-        schema = create_lance_schema(ems_model=ems_model, metadata=data[0].model_dump()["metadata"])
+        schema = create_lance_schema(ems_model=ems_model, metadata=data[0].get("metadata"))
     if table_name in db.table_names():
         table = db.open_table(table_name)
     else:
         table = db.create_table(name=table_name, schema=schema)
-    table.add(data=[{**chunk.model_dump(by_alias=True, exclude={"metadata"}), **chunk.metadata} for chunk in data])
+    table.add(
+        data=[
+            {**{k: v for k, v in chunk.items() if k != "metadata"}, **chunk.get("metadata", {})} for chunk in data
+        ]
+    )
     table.create_fts_index(field_names=TEXT_FIELD_NAME, replace=True)  # type: ignore
     return table
 
